@@ -168,6 +168,8 @@ export default function App() {
   
   const [loginCreds, setLoginCreds] = useState({ user: '', pass: '' });
   const [loginError, setLoginError] = useState(false);
+  const [loginStep, setLoginStep] = useState(0); // 0: Password, 1: Google
+  const [authStatus, setAuthStatus] = useState<string | null>(null);
 
   // Firestore Sync
   useEffect(() => {
@@ -208,12 +210,24 @@ export default function App() {
     const checkRedirect = async () => {
       const { getRedirectResult } = await import('firebase/auth');
       try {
+        setAuthStatus('Checking auth result...');
         const result = await getRedirectResult(auth);
-        if (result && result.user.email === 'nethisip1313@gmail.com') {
-          setIsAdmin(true);
+        
+        if (result) {
+          if (result.user.email === 'nethisip1313@gmail.com') {
+            setIsAdmin(true);
+            setShowLogin(false);
+            setAuthStatus('Authorized successfully!');
+          } else {
+            setAuthStatus('Account not authorized.');
+            await signOut(auth);
+          }
+        } else {
+          setAuthStatus(null);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Redirect result error:', err);
+        setAuthStatus(err.message);
       }
     };
     checkRedirect();
@@ -222,6 +236,8 @@ export default function App() {
       setFbUser(user);
       if (user && user.email === 'nethisip1313@gmail.com' && user.emailVerified) {
         setIsAdmin(true);
+        // Only close if we are in admin mode
+        if (showLogin) setShowLogin(false);
       }
     });
   }, []);
@@ -287,42 +303,43 @@ export default function App() {
     }
   };
 
-  const handleLogin = async () => {
+  const handleCheckPassword = () => {
     if (loginCreds.user === 'empower' && loginCreds.pass === 'battlecry121') {
-      try {
+      setLoginStep(1);
+      setLoginError(false);
+    } else {
+      setLoginError(true);
+    }
+  };
+
+  const handleGoogleLogin = async (mode: 'popup' | 'redirect' = 'popup') => {
+    try {
+      setAuthStatus(`Opening Google ${mode}...`);
+      if (mode === 'popup') {
         const result = await signInWithPopup(auth, provider);
         if (result.user.email === 'nethisip1313@gmail.com') {
           setIsAdmin(true);
           setShowLogin(false);
-          setLoginError(false);
+          setLoginStep(0);
           setLoginCreds({ user: '', pass: '' });
+          setAuthStatus(null);
         } else {
+          setAuthStatus('Unauthorized email.');
           alert('Access denied: Please sign in with nethisip1313@gmail.com.');
           await signOut(auth);
         }
-      } catch (err: any) {
-        console.error('Google Sign In Error:', err);
-        
-        let errorMsg = 'Google authentication failed.';
-        if (err.code === 'auth/popup-blocked') {
-          errorMsg = 'Your browser blocked the popup. Please click "Open in New Tab" in the top-right of AI Studio and try logging in there.';
-        } else if (err.code === 'auth/unauthorized-domain') {
-          errorMsg = `DOMAIN NOT AUTHORIZED: You must add "${window.location.hostname}" to your Firebase Authorized Domains in the console.`;
-        } else if (err.code === 'auth/popup-closed-by-user') {
-          errorMsg = 'Login popup was closed before finishing.';
-        }
-        
-        const useRedirect = confirm(`${errorMsg}\n\nWould you like to try "Redirect" mode instead? (Recommended for mobile or if popups keep failing)`);
-        
-        if (useRedirect) {
-          const { signInWithRedirect } = await import('firebase/auth');
-          await signInWithRedirect(auth, provider);
-        }
-        
-        setLoginError(true);
+      } else {
+        const { signInWithRedirect } = await import('firebase/auth');
+        setAuthStatus('Redirecting to Google. Please wait...');
+        // Save current path if needed, though here it's root
+        await signInWithRedirect(auth, provider);
       }
-    } else {
-      setLoginError(true);
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setAuthStatus(err.message);
+      if (mode === 'popup' && err.code !== 'auth/cancelled-by-user') {
+        alert('Popup blocked or failed. Please use the "Sign in (Redirect)" button or allow popups in your browser.');
+      }
     }
   };
 
@@ -715,42 +732,96 @@ export default function App() {
               <p className="text-white/40 text-center text-xs font-bold uppercase tracking-widest mb-10">Restricted Access</p>
               
               <div className="space-y-4">
-                <div className="bg-[#ff533d]/5 border border-[#ff533d]/20 rounded-2xl p-4 mb-4">
-                  <p className="text-[10px] text-[#ff533d] font-black uppercase tracking-widest text-center">
-                    Authorized Admins only. <br/>Google login required for cloud sync.
-                  </p>
-                </div>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                  <input
-                    type="text"
-                    value={loginCreds.user}
-                    onChange={(e) => setLoginCreds(prev => ({ ...prev, user: e.target.value }))}
-                    placeholder="USERNAME"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[#ff533d]/50 transition-all"
-                  />
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                  <input
-                    type="password"
-                    value={loginCreds.pass}
-                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                    onChange={(e) => setLoginCreds(prev => ({ ...prev, pass: e.target.value }))}
-                    placeholder="PASSWORD"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[#ff533d]/50 transition-all"
-                  />
-                </div>
-                {loginError && <p className="text-[#ff533d] text-[10px] font-black uppercase text-center animate-shake">Incorrect Credentials</p>}
+                {loginStep === 0 ? (
+                  <>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                      <input
+                        type="text"
+                        value={loginCreds.user}
+                        onChange={(e) => setLoginCreds(prev => ({ ...prev, user: e.target.value }))}
+                        placeholder="USERNAME"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[#ff533d]/50 transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                      <input
+                        type="password"
+                        value={loginCreds.pass}
+                        onKeyDown={(e) => e.key === 'Enter' && handleCheckPassword()}
+                        onChange={(e) => setLoginCreds(prev => ({ ...prev, pass: e.target.value }))}
+                        placeholder="PASSWORD"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[#ff533d]/50 transition-all"
+                      />
+                    </div>
+                    {loginError && <p className="text-[#ff533d] text-[10px] font-black uppercase text-center animate-shake">Incorrect Credentials</p>}
+                    
+                    <button
+                      onClick={handleCheckPassword}
+                      className="w-full bg-[#ff533d] text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all mt-6"
+                    >
+                      Next Step
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-6 text-center">
+                    <div className="bg-[#ff533d]/10 border border-[#ff533d]/20 rounded-2xl p-6">
+                      <p className="text-xs font-black uppercase tracking-widest text-[#ff533d] mb-4">Credentials Verified!</p>
+                      <p className="text-[10px] text-white/60 font-medium uppercase tracking-[0.1em] mb-0">
+                        Now sign in with Google to enable cloud sync.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => handleGoogleLogin('popup')}
+                        className="w-full bg-white text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-stone-200 transition-all font-mono"
+                      >
+                        <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" referrerPolicy="no-referrer" />
+                        Option 1: POPUP
+                      </button>
+                      
+                      <button
+                        onClick={() => handleGoogleLogin('redirect')}
+                        className="w-full bg-[#ff533d] text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all font-mono"
+                      >
+                         <img src="https://www.google.com/favicon.ico" className="w-4 h-4 grayscale brightness-0" alt="Google" referrerPolicy="no-referrer" />
+                        Option 2: REDIRECT
+                      </button>
+
+                      <div className="py-2">
+                        {authStatus ? (
+                          <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#ff533d] animate-pulse">
+                            <RefreshCcw className="w-3 h-3 animate-spin" />
+                            {authStatus}
+                          </div>
+                        ) : (
+                          <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest leading-relaxed">
+                            Use Option 2 if Option 1 does not open. <br/>
+                            This is common on Chrome and Mobile.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-8 pt-8 border-t border-white/5">
+                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mb-4">Domain Help</p>
+                      <div className="bg-black/40 rounded-xl p-3 border border-white/5 font-mono text-[9px] text-white/30 truncate select-all">
+                        {window.location.hostname}
+                      </div>
+                      <p className="text-[8px] text-white/20 uppercase tracking-widest mt-2 leading-relaxed">
+                        Add this domain to Firebase Console <br/>Authentication &gt; Settings &gt; Authorized Domains
+                      </p>
+                    </div>
+                  </div>
+                )}
                 
                 <button
-                  onClick={handleLogin}
-                  className="w-full bg-[#ff533d] text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all mt-6"
-                >
-                  Authorize
-                </button>
-                <button
-                  onClick={() => setShowLogin(false)}
+                  onClick={() => {
+                    setShowLogin(false);
+                    setLoginStep(0);
+                  }}
                   className="w-full bg-transparent text-white/40 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:text-white transition-all"
                 >
                   Cancel
