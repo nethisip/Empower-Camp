@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import RichTextEditor from './components/RichTextEditor';
 import { 
   ChevronRight, 
   X, 
@@ -647,19 +648,19 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Full Content</label>
-                      <textarea
-                        className="w-full h-40 bg-white border border-stone-200 rounded-xl p-4 text-base font-medium leading-relaxed"
-                        value={selectedEvent.details}
-                        onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { details: e.target.value })}
+                      <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Full Content & Media</label>
+                      <RichTextEditor 
+                        content={selectedEvent.details}
+                        onChange={(content) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { details: content })}
                       />
                     </div>
                   </div>
                 ) : (
                   <div className="prose prose-stone max-w-none">
-                    <p className="text-xl sm:text-2xl font-medium leading-relaxed text-stone-700 whitespace-pre-line">
-                      {selectedEvent.details}
-                    </p>
+                    <div 
+                      className="text-lg sm:text-xl font-medium leading-relaxed text-stone-700 editor-view-output"
+                      dangerouslySetInnerHTML={{ __html: selectedEvent.details }}
+                    />
                   </div>
                 )}
               </div>
