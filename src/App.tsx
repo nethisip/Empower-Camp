@@ -205,6 +205,19 @@ export default function App() {
 
   // Auth State
   useEffect(() => {
+    const checkRedirect = async () => {
+      const { getRedirectResult } = await import('firebase/auth');
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user.email === 'nethisip1313@gmail.com') {
+          setIsAdmin(true);
+        }
+      } catch (err) {
+        console.error('Redirect result error:', err);
+      }
+    };
+    checkRedirect();
+
     return onAuthStateChanged(auth, (user) => {
       setFbUser(user);
       if (user && user.email === 'nethisip1313@gmail.com' && user.emailVerified) {
@@ -277,15 +290,36 @@ export default function App() {
   const handleLogin = async () => {
     if (loginCreds.user === 'empower' && loginCreds.pass === 'battlecry121') {
       try {
-        await signInWithPopup(auth, provider);
-        setIsAdmin(true);
-        setShowLogin(false);
-        setLoginError(false);
-        setLoginCreds({ user: '', pass: '' });
-      } catch (err) {
+        const result = await signInWithPopup(auth, provider);
+        if (result.user.email === 'nethisip1313@gmail.com') {
+          setIsAdmin(true);
+          setShowLogin(false);
+          setLoginError(false);
+          setLoginCreds({ user: '', pass: '' });
+        } else {
+          alert('Access denied: Please sign in with nethisip1313@gmail.com.');
+          await signOut(auth);
+        }
+      } catch (err: any) {
         console.error('Google Sign In Error:', err);
+        
+        let errorMsg = 'Google authentication failed.';
+        if (err.code === 'auth/popup-blocked') {
+          errorMsg = 'Your browser blocked the popup. Please click "Open in New Tab" in the top-right of AI Studio and try logging in there.';
+        } else if (err.code === 'auth/unauthorized-domain') {
+          errorMsg = `DOMAIN NOT AUTHORIZED: You must add "${window.location.hostname}" to your Firebase Authorized Domains in the console.`;
+        } else if (err.code === 'auth/popup-closed-by-user') {
+          errorMsg = 'Login popup was closed before finishing.';
+        }
+        
+        const useRedirect = confirm(`${errorMsg}\n\nWould you like to try "Redirect" mode instead? (Recommended for mobile or if popups keep failing)`);
+        
+        if (useRedirect) {
+          const { signInWithRedirect } = await import('firebase/auth');
+          await signInWithRedirect(auth, provider);
+        }
+        
         setLoginError(true);
-        alert('Google authentication failed. Required for cloud sync.');
       }
     } else {
       setLoginError(true);
