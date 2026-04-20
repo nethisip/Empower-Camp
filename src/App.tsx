@@ -1,0 +1,685 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  ChevronRight, 
+  X, 
+  Lock, 
+  Unlock, 
+  Type, 
+  Calendar, 
+  Clock, 
+  Tag, 
+  Info,
+  Save,
+  RotateCcw,
+  User
+} from 'lucide-react';
+
+// Types
+interface Event {
+  id: string;
+  category: string;
+  start: string;
+  end: string;
+  title: string;
+  preview: string;
+  details: string;
+  poc: string;
+}
+
+interface Day {
+  id: string;
+  label: string;
+  date: string;
+  theme: string;
+  events: Event[];
+}
+
+const INITIAL_DATA: Day[] = [
+  {
+    id: 'day1',
+    label: 'Day 1',
+    date: 'April 29',
+    theme: 'MY STORY, HIS GLORY',
+    events: [
+      { id: 'd1e1', category: 'Arrival', start: '8:00 AM', end: '9:00 AM', title: 'Registration & Check-In', preview: 'Campers arrive, register, receive kits, and get room assignments.', details: 'Campers arrive, register, receive kits, and get room assignments. Each camper will be greeted by the welcome team and guided to their designated quarters.', poc: 'Joy and Princess' },
+      { id: 'd1e2', category: 'Orientation', start: '9:00 AM', end: '10:30 AM', title: 'Camp Orientation', preview: 'Introduction to camp schedule, rules, and the Battle Royale.', details: 'Introduction to camp schedule, house rules, and safety protocols. Announcement of the Battle Royale competition details, team names, theme song, and chants.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd1e3', category: 'Games', start: '10:30 AM', end: '12:00 PM', title: 'Indoor Game', preview: 'Fun group games and Bible challenges to break the ice.', details: 'High-energy indoor games designed to foster teamwork and familiarity among campers. Includes Bible-themed trivia and physical challenges.', poc: 'Beth' },
+      { id: 'd1e4', category: 'Meal', start: '12:00 PM', end: '1:00 PM', title: 'Lunch', preview: 'Lunch break.', details: 'Nutritious lunch served in the main hall. An opportunity for teams to bond over their first meal together.', poc: 'ER' },
+      { id: 'd1e5', category: 'Lesson', start: '1:00 PM', end: '2:00 PM', title: 'Lesson 1 — Pastor John Boromeo', preview: 'Eyes Locked in the Battle', details: 'Session 1 Speaker: Pastor John Boromeo Title: Eyes Locked in the Battle. Focusing on spiritual alertness and maintaining vision amidst challenges.', poc: 'Pastor John Boromeo' },
+      { id: 'd1e6', category: 'Circle', start: '2:00 PM', end: '3:00 PM', title: 'EMPOWER CIRCLE 1', preview: 'Topic: THE GOOD NEWS', details: 'Small group discussion focusing on the core message of the Gospel and its personal impact.', poc: 'Pastor Joseph and Pastor Paul' },
+      { id: 'd1e7', category: 'Team', start: '3:00 PM', end: '5:00 PM', title: 'Team Formation', preview: 'Teams organize and build team identity.', details: 'Teams work on their banners, war cries, and identity. This time is crucial for establishing team synergy for the coming competitions.', poc: 'Beth' },
+      { id: 'd1e8', category: 'Free Time', start: '5:00 PM', end: '6:00 PM', title: 'Free Time', preview: 'Rest, refresh, or connect with other campers.', details: 'Unstructured time for campers to rest, shower, or engage in personal prayer and reflection.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd1e9', category: 'Meal', start: '6:00 PM', end: '7:00 PM', title: 'Dinner', preview: 'Dinner break.', details: 'Full dinner service for all campers and staff.', poc: 'ER' },
+      { id: 'd1e10', category: 'Worship', start: '7:00 PM', end: '8:30 PM', title: 'Worship Night', preview: 'High-energy praise and worship.', details: 'A vibrant concert-style worship experience led by the Empower Worship Team, focusing on exuberant praise.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd1e11', category: 'Lesson', start: '8:30 PM', end: '9:30 PM', title: 'Lesson 2 — Pastor Jeral Sardiña', preview: 'The Battle Plan for Your Body', details: 'Speaker: Pastor Jeral Sardiña Topic: The Battle Plan for Your Body Theme line: My Story, His Glory. Discussing holiness and the physical vessel.', poc: 'Pastor Jeral Sardiña' },
+      { id: 'd1e12', category: 'Circle', start: '9:30 PM', end: '10:00 PM', title: 'EMPOWER CIRCLE 2', preview: 'Topic: PATAY KUNG PATAY', details: 'Deeper dive into self-denial and the cost of discipleship following the evening session.', poc: 'Pastor Joseph and Pastor Paul' },
+      { id: 'd1e13', category: 'Lights Off', start: '10:00 PM', end: '—', title: 'Lights Off', preview: 'Rest for the next day.', details: 'Curfew for all campers to ensure adequate rest for Day 2 activities.', poc: 'Pastor Amoz and Jeem' }
+    ]
+  },
+  {
+    id: 'day2',
+    label: 'Day 2',
+    date: 'April 30',
+    theme: 'MY HARDSHIPS, HIS WORSHIP',
+    events: [
+      { id: 'd2e1', category: 'Warm-Up', start: '6:00 AM', end: '6:30 AM', title: 'Warm-Up / Energizers', preview: 'Morning energizers to start the day.', details: 'Physical activities and spiritual wake-up calls to prepare the body and mind for a demanding day.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd2e2', category: 'Lesson', start: '6:30 AM', end: '7:00 AM', title: 'Lesson 3 — Pastor Joseph', preview: 'Winning the Battle Within', details: 'Speaker: Pastor Joseph. Focusing on internal spiritual warfare and personal victory through Christ.', poc: 'Pastor Joseph' },
+      { id: 'd2e3', category: 'Meal', start: '7:00 AM', end: '8:00 AM', title: 'Breakfast', preview: 'Breakfast break.', details: 'Morning meal to fuel the teams for the upcoming physical challenges.', poc: 'ER' },
+      { id: 'd2e4', category: 'Lesson', start: '8:00 AM', end: '9:00 AM', title: 'Lesson 4 — Ptr. Amoz', preview: 'Surrendering Control', details: 'Speaker: Ptr. Amoz Topic: Surrendering Control in the Battle. Learning the power of dependence on God.', poc: 'Ptr. Amoz' },
+      { id: 'd2e5', category: 'Circle', start: '9:00 AM', end: '9:30 AM', title: 'EMPOWER CIRCLE 3', preview: 'Topic: Walang Atrasan', details: 'Group commitment session on perseverance and "No Retreat" mindset.', poc: 'Pastor Joseph and Pastor Paul' },
+      { id: 'd2e6', category: 'Briefing', start: '9:30 AM', end: '10:00 AM', title: 'The Great 8 Explanation', preview: 'Instructions for the challenge.', details: 'Detailed instructions and safety rules for the main outdoor team competition.', poc: 'Beth' },
+      { id: 'd2e7', category: 'Challenge', start: '10:00 AM', end: '11:30 AM', title: 'The Great 8 Challenges', preview: 'Outdoor team challenges.', details: 'A circuit of 8 demanding tasks that test strength, ingenuity, and teamwork. The heart of the Battle Royale.', poc: 'Beth' },
+      { id: 'd2e8', category: 'Meal', start: '12:00 PM', end: '1:00 PM', title: 'Lunch', preview: 'Lunch break.', details: 'Recovery meal after the morning challenges.', poc: 'ER' },
+      { id: 'd2e9', category: 'Team', start: '1:30 PM', end: '3:30 PM', title: 'Team Huddle', preview: 'Talent presentation prep.', details: 'Final preparation and rehearsal for the talent night presentations.', poc: 'Beth' },
+      { id: 'd2e10', category: 'Games', start: '3:30 PM', end: '4:30 PM', title: 'Battle Plan', preview: 'Mini-games session.', details: 'Targeted competitive games to rack up additional points for the leaderboard.', poc: 'Beth' },
+      { id: 'd2e11', category: 'Battle Royale', start: '4:30 PM', end: '5:30 PM', title: 'The Battle Royale', preview: 'The Last Battle.', details: 'The grand finale of the physical competitions. All teams converge for a final high-stakes showdown.', poc: 'Beth' },
+      { id: 'd2e12', category: 'Presentation', start: '7:00 PM', end: '8:30 PM', title: 'Team Presentation', preview: 'Sprints, songs, or performances.', details: 'Creative expressions of faith and the camp theme. Maximum 5 minutes per team. Judged for creativity and message.', poc: 'Beth' },
+      { id: 'd2e13', category: 'Lesson', start: '8:30 PM', end: '9:30 PM', title: 'Lesson 5 — Ptr. Neth Isip', preview: 'Walking Worthy', details: 'Speaker: Ptr. Neth Isip Topic: Walking Worthy in the Battle. Theme line: My Hardships, His Worship.', poc: 'Ptr. Neth Isip' },
+      { id: 'd2e14', category: 'Campfire', start: '9:30 PM', end: '11:00 PM', title: 'Campfire', preview: 'What Are You Burning?', details: 'Facilitators: Ton / Theo / Lester / Venzen. Theme: What Are You Burning Tonight? A symbolic act of surrendering burdens.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd2e15', category: 'Lights Off', start: '11:00 PM', end: '—', title: 'Lights Off', preview: 'Final night rest.', details: 'Rest for the concluding day of the camp.', poc: 'Pastor Amoz and Jeem' }
+    ]
+  },
+  {
+    id: 'day3',
+    label: 'Day 3',
+    date: 'May 1',
+    theme: 'MY BODY, HIS CHOICE',
+    events: [
+      { id: 'd3e1', category: 'Lesson', start: '6:00 AM', end: '6:30 AM', title: 'Lesson 6 — Pastor Philip', preview: 'Standing Firm', details: 'Speaker: Pastor Philip Topic: Standing Firm in the Battle. Concluding spiritual instructions.', poc: 'Pastor Philip' },
+      { id: 'd3e2', category: 'Meal', start: '7:00 AM', end: '8:00 AM', title: 'Breakfast', preview: 'Last camp breakfast.', details: 'Final shared meal and community reflection.', poc: 'ER' },
+      { id: 'd3e3', category: 'Pack-Up', start: '8:00 AM', end: '9:00 AM', title: 'Pack-Up & Cleanup', preview: 'Balik Phone.', details: 'Clearing rooms and returning camp equipment. Mobile phones are returned to campers.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd3e4', category: 'Lesson', start: '9:00 AM', end: '10:00 AM', title: 'Lesson 7 — Ptr. YuSef Doca', preview: 'Displaying Christ', details: 'Speaker: Ptr. YuSef Doca Topic: Displaying Christ in the Battle. Application after camp.', poc: 'Ptr. YuSef Doca' },
+      { id: 'd3e5', category: 'Q&A', start: '10:00 AM', end: '11:30 AM', title: 'Q&A Session', preview: 'Open floor discussion.', details: 'An interactive session addressing campers\' questions and providing clarity on the lessons learned.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd3e6', category: 'Closing', start: '11:30 AM', end: '12:30 PM', title: 'Commitment Ceremony', preview: 'Final group prayer.', details: 'A solemn time of individual commitment to live out the Battle Cry theme beyond the camp grounds.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd3e7', category: 'Awards', start: '1:30 PM', end: '2:30 PM', title: 'Awards Ceremony', preview: 'Recognition and farewell.', details: 'Awarding the Battle Royale champions and special individual citations. Final group photos.', poc: 'Pastor Amoz and Jeem' }
+    ]
+  }
+];
+
+
+export default function App() {
+  const [data, setData] = useState<Day[]>(() => {
+    const saved = localStorage.getItem('battle-cry-v3');
+    if (!saved) return INITIAL_DATA;
+    
+    // Migration: Ensure POC is present in all events
+    const parsed: Day[] = JSON.parse(saved);
+    const migrated = parsed.map((day, dIdx) => ({
+      ...day,
+      events: day.events.map((event, eIdx) => ({
+        ...INITIAL_DATA[dIdx]?.events[eIdx],
+        ...event,
+        poc: event.poc || INITIAL_DATA[dIdx]?.events[eIdx]?.poc || 'Pastor Amoz and Jeem'
+      }))
+    }));
+    return migrated;
+  });
+  
+  const [activeDayId, setActiveDayId] = useState(data[0].id);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedEventDayId, setSelectedEventDayId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDaySettings, setShowDaySettings] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'>('lg');
+  
+  const [loginCreds, setLoginCreds] = useState({ user: '', pass: '' });
+  const [loginError, setLoginError] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('battle-cry-v3', JSON.stringify(data));
+  }, [data]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const sizes = {
+      sm: '14px',
+      base: '16px',
+      lg: '18px',
+      xl: '20px',
+      '2xl': '24px',
+      '3xl': '28px'
+    };
+    root.style.fontSize = sizes[fontSize];
+  }, [fontSize]);
+
+  const activeDay = data.find(d => d.id === activeDayId)!;
+  const selectedEvent = selectedEventId && selectedEventDayId 
+    ? data.find(d => d.id === selectedEventDayId)?.events.find(e => e.id === selectedEventId)
+    : null;
+
+  const handleUpdateEvent = (dayId: string, eventId: string, updates: Partial<Event>) => {
+    setData(prev => prev.map(day => {
+      if (day.id !== dayId) return day;
+      return {
+        ...day,
+        events: day.events.map(event => {
+          if (event.id !== eventId) return event;
+          return { ...event, ...updates };
+        })
+      };
+    }));
+  };
+
+  const handleUpdateDay = (dayId: string, updates: Partial<Day>) => {
+    setData(prev => prev.map(day => {
+      if (day.id !== dayId) return day;
+      return { ...day, ...updates };
+    }));
+  };
+
+  const handleLogin = () => {
+    if (loginCreds.user === 'empower' && loginCreds.pass === 'battlecry121') {
+      setIsAdmin(true);
+      setShowLogin(false);
+      setLoginError(false);
+      setLoginCreds({ user: '', pass: '' });
+    } else {
+      setLoginError(true);
+    }
+  };
+
+  const textSizeClass = {
+    sm: 'text-sm',
+    base: 'text-base',
+    lg: 'text-lg',
+    xl: 'text-xl',
+    '2xl': 'text-2xl',
+    '3xl': 'text-3xl'
+  }[fontSize];
+
+  const headingSizeClass = {
+    sm: 'text-xl',
+    base: 'text-2xl',
+    lg: 'text-3xl',
+    xl: 'text-4xl',
+    '2xl': 'text-5xl',
+    '3xl': 'text-6xl'
+  }[fontSize];
+
+  const getCategoryStyles = (category: string) => {
+    const cat = category.toLowerCase();
+    if (cat.includes('lesson')) return 'bg-red-500/10 border-red-500/40 text-red-500';
+    if (cat.includes('meal') || cat.includes('lunch') || cat.includes('dinner') || cat.includes('breakfast')) return 'bg-yellow-500/10 border-yellow-500/40 text-yellow-500';
+    return 'bg-emerald-500/10 border-emerald-500/40 text-emerald-500';
+  };
+
+  return (
+    <div className={`min-h-screen bg-[#0d0d0f] text-[#f3f3f2] font-sans selection:bg-[#ff533d] selection:text-white`}>
+      {/* Background Decoration */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-20">
+        <div className="absolute top-[-10%] left-[50%] -translate-x-1/2 w-[120%] h-[50%] bg-radial-gradient from-[#ff533d]/20 to-transparent blur-[120px]" />
+      </div>
+
+      {/* Top Navbar */}
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#0a0a0c]/80 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff533d] to-[#ff6b57] flex items-center justify-center shadow-[0_0_20px_rgba(255,83,61,0.3)]">
+              <span className="font-black text-black">⚔</span>
+            </div>
+            <div className="hidden sm:block">
+              <h1 className="text-sm font-black tracking-widest uppercase">Empower Camp</h1>
+              <p className="text-[10px] text-white/40 uppercase tracking-tighter">Battle Cry: Philippians 1:20-21</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Font Size Control */}
+            <div className="flex items-center bg-white/5 rounded-lg p-1 border border-white/10">
+              <Type className="w-4 h-4 mx-2 text-white/40" />
+              {(['sm', 'base', 'lg', 'xl', '2xl', '3xl'] as const).map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setFontSize(size)}
+                  className={`w-7 h-7 flex items-center justify-center rounded text-[10px] uppercase font-bold transition-all ${
+                    fontSize === size ? 'bg-[#ff533d] text-black shadow-lg scale-110' : 'hover:bg-white/5 text-white/40'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => isAdmin ? setIsAdmin(false) : setShowLogin(true)}
+              className={`p-2 rounded-lg border transition-all ${
+                isAdmin 
+                  ? 'bg-[#ff533d]/10 border-[#ff533d]/40 text-[#ff533d]' 
+                  : 'bg-white/5 border-white/10 hover:border-white/20'
+              }`}
+            >
+              {isAdmin ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <main className="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-12">
+        {/* Hero Section */}
+        <header className="mb-12 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-block px-4 py-1.5 bg-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-black mb-6"
+          >
+            Empower Camp 2026
+          </motion.div>
+          
+          <motion.h2 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`font-black tracking-tight leading-[0.85] text-[#ff533d] mb-4 text-center ${headingSizeClass} uppercase drop-shadow-2xl`}
+          >
+            Battle <br className="sm:hidden" /> Cry
+          </motion.h2>
+          
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-white/60 font-medium tracking-widest uppercase text-sm mb-12"
+          >
+            To Live Christ, To Die Gain
+          </motion.p>
+
+          {/* Large Day Selector below BATTLE CRY */}
+          <div className="flex flex-wrap justify-center gap-3 mb-16">
+            {data.map((day) => (
+              <button
+                key={day.id}
+                onClick={() => setActiveDayId(day.id)}
+                className={`group relative overflow-hidden px-8 py-4 rounded-2xl transition-all duration-300 border ${
+                  activeDayId === day.id 
+                    ? 'bg-[#ff533d] border-[#ff533d] text-black scale-105 shadow-[0_20px_40px_-5px_rgba(255,83,61,0.4)]' 
+                    : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/60'
+                }`}
+              >
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">{day.label}</div>
+                <div className="text-xl font-black uppercase">{day.date}</div>
+                {activeDayId === day.id && (
+                  <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-1 bg-black/20" />
+                )}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {/* Schedule List */}
+        <section className="space-y-6">
+          <div className="flex items-end justify-between border-b border-white/5 pb-4 mb-8">
+            <div>
+              <h3 className="text-2xl font-black tracking-tight uppercase">{activeDay.label} Theme</h3>
+              <p className="text-[#ff533d] font-bold uppercase tracking-widest text-sm">{activeDay.theme}</p>
+            </div>
+            {isAdmin && (
+              <button 
+                onClick={() => setShowDaySettings(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold uppercase hover:bg-white/10 transition-colors"
+              >
+                <Calendar className="w-4 h-4" />
+                Edit Day
+              </button>
+            )}
+          </div>
+
+          <div className="grid gap-4">
+            {activeDay.events.map((event, idx) => (
+              <motion.div
+                key={event.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                onClick={() => {
+                  setSelectedEventId(event.id);
+                  setSelectedEventDayId(activeDay.id);
+                }}
+                className="group cursor-pointer bg-white/5 hover:bg-white/[0.08] border border-white/5 hover:border-[#ff533d]/30 rounded-3xl p-5 sm:p-7 transition-all duration-200"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                  {/* Time Box */}
+                  <div className="sm:w-32 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-white/10 pb-4 sm:pb-0 sm:pr-6">
+                    <div className="text-xl font-black text-white/90">{event.start}</div>
+                    <div className="text-xs font-bold text-white/30 uppercase">{event.end || '—'}</div>
+                  </div>
+
+                  {/* Info Box */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                       <span className={`px-2 py-0.5 rounded border text-[10px] font-black uppercase tracking-tighter ${getCategoryStyles(event.category)}`}>
+                        {event.category}
+                      </span>
+                    </div>
+                    <h4 className="text-lg font-black tracking-tight mb-2 group-hover:text-[#ff533d] transition-colors truncate">{event.title}</h4>
+                    <p className="text-white/40 text-sm line-clamp-1">{event.preview}</p>
+                  </div>
+
+                  <div className="flex items-center justify-end sm:pl-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 group-hover:bg-[#ff533d] group-hover:text-black transition-all">
+                      <ChevronRight className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {selectedEvent && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedEventId(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl bg-[#fdfdfd] text-stone-900 rounded-[2.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="p-8 sm:p-10 border-b border-stone-100">
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      <div className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-full border border-stone-200 text-[10px] font-black uppercase tracking-widest text-stone-500">
+                        <Calendar className="w-3 h-3" />
+                        {selectedEventDayId && data.find(d=>d.id===selectedEventDayId)?.label} • {selectedEventDayId && data.find(d=>d.id===selectedEventDayId)?.date}
+                      </div>
+                      <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${getCategoryStyles(selectedEvent.category)}`}>
+                        <Tag className="w-3 h-3" />
+                        {selectedEvent.category}
+                      </div>
+                    </div>
+                    <div className={`flex items-center gap-2 font-black uppercase tracking-tight text-xl ${
+                      selectedEvent.category.toLowerCase().includes('lesson') ? 'text-red-500' :
+                      selectedEvent.category.toLowerCase().includes('meal') ? 'text-yellow-600' :
+                      'text-emerald-600'
+                    }`}>
+                      <Clock className="w-6 h-6" />
+                      {selectedEvent.start} {selectedEvent.end !== '—' && `— ${selectedEvent.end}`}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setSelectedEventId(null);
+                      setIsEditing(false);
+                    }}
+                    className="p-3 bg-white border border-stone-200 rounded-2xl hover:bg-white/80 transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                
+                {isEditing ? (
+                  <input
+                    className="w-full text-3xl font-black rounded-xl border border-stone-200 p-2 uppercase focus:ring-2 focus:ring-[#ff533d] outline-none"
+                    value={selectedEvent.title}
+                    onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { title: e.target.value })}
+                  />
+                ) : (
+                  <h2 className="text-4xl sm:text-5xl font-black tracking-tighter leading-none uppercase text-stone-900">
+                    {selectedEvent.title}
+                  </h2>
+                )}
+              </div>
+
+              {/* Modal Content - Main Focus on Details */}
+              <div className="p-8 sm:p-10 max-h-[60vh] overflow-y-auto">
+                <div className="flex items-center gap-3 mb-6 text-stone-400">
+                  <Info className="w-5 h-5" />
+                  <span className="text-xs font-black uppercase tracking-[0.2em]">Details</span>
+                </div>
+                
+                {isEditing ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Category</label>
+                        <input
+                          className="w-full bg-white border border-stone-200 rounded-xl p-3 text-sm font-bold"
+                          value={selectedEvent.category}
+                          onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { category: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Start Time</label>
+                        <input
+                          className="w-full bg-white border border-stone-200 rounded-xl p-3 text-sm font-bold"
+                          value={selectedEvent.start}
+                          onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { start: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Person In Charge</label>
+                      <input
+                        className="w-full bg-white border border-stone-200 rounded-xl p-3 text-sm font-bold"
+                        value={selectedEvent.poc}
+                        onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { poc: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-2 block">Full Content</label>
+                      <textarea
+                        className="w-full h-40 bg-white border border-stone-200 rounded-xl p-4 text-base font-medium leading-relaxed"
+                        value={selectedEvent.details}
+                        onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { details: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="prose prose-stone max-w-none">
+                    <p className="text-xl sm:text-2xl font-medium leading-relaxed text-stone-700 whitespace-pre-line">
+                      {selectedEvent.details}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-8 bg-stone-50 border-t border-stone-100 flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                   <div className="flex items-center gap-2 text-stone-400 text-[10px] font-bold uppercase tracking-widest">
+                    <User className="w-3 h-3" />
+                    Person In Charge
+                  </div>
+                  <div className="text-sm font-black uppercase tracking-tight text-stone-900">
+                    {selectedEvent.poc || 'N/A'}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-4 border-t border-stone-200/50">
+                  <div className="flex items-center gap-2 text-stone-400 text-[10px] font-bold uppercase tracking-widest">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    {isEditing ? 'Draft Mode' : 'Live Event Schedule'}
+                  </div>
+                  {isAdmin && (
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setIsEditing(!isEditing)}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
+                          isEditing ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20' : 'bg-black text-white hover:scale-105'
+                        }`}
+                      >
+                        {isEditing ? <Save className="w-4 h-4" /> : 'Edit'}
+                        {isEditing ? 'Save Details' : ''}
+                      </button>
+                      {!isEditing && (
+                        <button className="p-3 bg-stone-200 text-stone-600 rounded-2xl hover:bg-stone-300 transition-all">
+                          <RotateCcw className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Login Modal */}
+      <AnimatePresence>
+        {showLogin && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLogin(false)}
+              className="absolute inset-0 bg-[#0d0d0f]/90 backdrop-blur-xl"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md bg-[#18181c] border border-white/10 rounded-[2.5rem] p-10 overflow-hidden"
+            >
+              <div className="flex justify-center mb-8">
+                <div className="w-16 h-16 rounded-[2rem] bg-gradient-to-br from-[#ff533d] to-[#ff6b57] flex items-center justify-center shadow-[0_0_30px_rgba(255,83,61,0.4)]">
+                   <Lock className="w-8 h-8 text-black" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-black text-center uppercase tracking-tight mb-2">Admin Sign In</h3>
+              <p className="text-white/40 text-center text-xs font-bold uppercase tracking-widest mb-10">Restricted Access</p>
+              
+              <div className="space-y-4">
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                  <input
+                    type="text"
+                    value={loginCreds.user}
+                    onChange={(e) => setLoginCreds(prev => ({ ...prev, user: e.target.value }))}
+                    placeholder="USERNAME"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[#ff533d]/50 transition-all"
+                  />
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                  <input
+                    type="password"
+                    value={loginCreds.pass}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                    onChange={(e) => setLoginCreds(prev => ({ ...prev, pass: e.target.value }))}
+                    placeholder="PASSWORD"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[#ff533d]/50 transition-all"
+                  />
+                </div>
+                {loginError && <p className="text-[#ff533d] text-[10px] font-black uppercase text-center animate-shake">Incorrect Credentials</p>}
+                
+                <button
+                  onClick={handleLogin}
+                  className="w-full bg-[#ff533d] text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all mt-6"
+                >
+                  Authorize
+                </button>
+                <button
+                  onClick={() => setShowLogin(false)}
+                  className="w-full bg-transparent text-white/40 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:text-white transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Day Settings Modal */}
+      <AnimatePresence>
+        {showDaySettings && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDaySettings(false)}
+              className="absolute inset-0 bg-[#0d0d0f]/90 backdrop-blur-xl"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md bg-[#18181c] border border-white/10 rounded-[2.5rem] p-10 overflow-hidden"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-2xl font-black uppercase tracking-tight">Day Settings</h3>
+                <button 
+                  onClick={() => setShowDaySettings(false)}
+                  className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-white/40" />
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#ff533d] mb-2 block">Display Label</label>
+                  <input
+                    type="text"
+                    value={activeDay.label}
+                    onChange={(e) => handleUpdateDay(activeDay.id, { label: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:border-[#ff533d]/50 transition-all uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#ff533d] mb-2 block">Date</label>
+                  <input
+                    type="text"
+                    value={activeDay.date}
+                    onChange={(e) => handleUpdateDay(activeDay.id, { date: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:border-[#ff533d]/50 transition-all uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#ff533d] mb-2 block">Theme Tagline</label>
+                  <input
+                    type="text"
+                    value={activeDay.theme}
+                    onChange={(e) => handleUpdateDay(activeDay.id, { theme: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:border-[#ff533d]/50 transition-all uppercase"
+                  />
+                </div>
+                
+                <button
+                  onClick={() => setShowDaySettings(false)}
+                  className="w-full bg-[#ff533d] text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all mt-6"
+                >
+                  Done Editing
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Footer Decoration */}
+      <footer className="max-w-7xl mx-auto px-4 py-20 text-center border-t border-white/5 mt-20">
+        <div className="mb-8 opacity-20">⚔</div>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
+          © 2026 EMPOWER CAMP — TO LIVE CHRIST, TO DIE GAIN
+        </p>
+      </footer>
+    </div>
+  );
+}
+
