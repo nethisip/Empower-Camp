@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "Day": {
+      "title": "Day",
+      "description": "A single day of the camp schedule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "date": { "type": "string" },
+        "theme": { "type": "string" },
+        "events": {
+          "type": "array",
+          "items": { "$ref": "#/entities/Event" }
+        }
+      },
+      "required": ["id", "label", "date", "theme", "events"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "A specific activity or event in the schedule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string" },
+        "start": { "type": "string" },
+        "end": { "type": "string" },
+        "title": { "type": "string" },
+        "preview": { "type": "string" },
+        "details": { "type": "string" },
+        "poc": { "type": "string" }
+      },
+      "required": ["id", "category", "start", "end", "title", "preview", "details", "poc"]
+    }
+  },
+  "firestore": {
+    "/days/{dayId}": {
+      "schema": "Day",
+      "description": "Collection of camp days and their events"
+    }
+  }
+}

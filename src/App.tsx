@@ -22,8 +22,51 @@ import {
   Info,
   Save,
   RotateCcw,
-  User
+  User,
+  RefreshCcw,
+  AlertCircle
 } from 'lucide-react';
+
+// Firebase
+import { initializeApp } from 'firebase/app';
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  onSnapshot, 
+  setDoc, 
+  updateDoc, 
+  getDocFromServer, 
+  enableIndexedDbPersistence 
+} from 'firebase/firestore';
+import { 
+  getAuth, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  onAuthStateChanged, 
+  signOut,
+  User as FirebaseUser 
+} from 'firebase/auth';
+import firebaseConfig from '../firebase-applet-config.json';
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// Enable offline persistence
+try {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+    } else if (err.code === 'unimplemented') {
+      console.warn('The current browser does not support all of the features required to enable persistence');
+    }
+  });
+} catch (e) {
+  // Ignore
+}
 
 // Types
 interface Event {
@@ -109,24 +152,12 @@ const INITIAL_DATA: Day[] = [
 
 
 export default function App() {
-  const [data, setData] = useState<Day[]>(() => {
-    const saved = localStorage.getItem('battle-cry-v3');
-    if (!saved) return INITIAL_DATA;
-    
-    // Migration: Ensure POC is present in all events
-    const parsed: Day[] = JSON.parse(saved);
-    const migrated = parsed.map((day, dIdx) => ({
-      ...day,
-      events: day.events.map((event, eIdx) => ({
-        ...INITIAL_DATA[dIdx]?.events[eIdx],
-        ...event,
-        poc: event.poc || INITIAL_DATA[dIdx]?.events[eIdx]?.poc || 'Pastor Amoz and Jeem'
-      }))
-    }));
-    return migrated;
-  });
+  const [data, setData] = useState<Day[]>(INITIAL_DATA);
+  const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
+  const [isSyncing, setIsSyncing] = useState(true);
+  const [syncError, setSyncError] = useState<string | null>(null);
   
-  const [activeDayId, setActiveDayId] = useState(data[0].id);
+  const [activeDayId, setActiveDayId] = useState(INITIAL_DATA[0].id);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedEventDayId, setSelectedEventDayId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -138,9 +169,63 @@ export default function App() {
   const [loginCreds, setLoginCreds] = useState({ user: '', pass: '' });
   const [loginError, setLoginError] = useState(false);
 
+  // Firestore Sync
   useEffect(() => {
-    localStorage.setItem('battle-cry-v3', JSON.stringify(data));
-  }, [data]);
+    setIsSyncing(true);
+    const unsub = onSnapshot(collection(db, 'days'), (snapshot) => {
+      if (snapshot.empty) {
+        // Seed initial data if DB is empty 
+        const seedData = async () => {
+          try {
+            for (const day of INITIAL_DATA) {
+              await setDoc(doc(db, 'days', day.id), day);
+            }
+          } catch (err) {
+            // If they aren't admin, this will fail. That's fine, 
+            // the admin just needs to log in once to populate.
+            console.warn('Initial seeding failed (likely due to permissions). Admin login required for first-time setup.');
+          }
+        };
+        seedData().then(() => setIsSyncing(false));
+      } else {
+        const days = snapshot.docs.map(doc => doc.data() as Day);
+        // Sort by ID to maintain order
+        days.sort((a, b) => a.id.localeCompare(b.id));
+        setData(days);
+        setIsSyncing(false);
+      }
+    }, (err) => {
+      console.error('Firestore Sync Error:', err);
+      setSyncError('Cloud sync interrupted. Showing local data.');
+      setIsSyncing(false);
+    });
+
+    return () => unsub();
+  }, []);
+
+  // Auth State
+  useEffect(() => {
+    return onAuthStateChanged(auth, (user) => {
+      setFbUser(user);
+      if (user && user.email === 'nethisip1313@gmail.com' && user.emailVerified) {
+        setIsAdmin(true);
+      }
+    });
+  }, []);
+
+  // Connection Test
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        await getDocFromServer(doc(db, 'test', 'connection'));
+      } catch (error) {
+        if(error instanceof Error && error.message.includes('the client is offline')) {
+          setSyncError("You are currently offline. Changes will sync when reconnected.");
+        }
+      }
+    };
+    testConnection();
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -160,35 +245,56 @@ export default function App() {
     ? data.find(d => d.id === selectedEventDayId)?.events.find(e => e.id === selectedEventId)
     : null;
 
-  const handleUpdateEvent = (dayId: string, eventId: string, updates: Partial<Event>) => {
-    setData(prev => prev.map(day => {
-      if (day.id !== dayId) return day;
-      return {
-        ...day,
-        events: day.events.map(event => {
-          if (event.id !== eventId) return event;
-          return { ...event, ...updates };
-        })
-      };
-    }));
+  const handleUpdateEvent = async (dayId: string, eventId: string, updates: Partial<Event>) => {
+    const day = data.find(d => d.id === dayId);
+    if (!day) return;
+
+    const newEvents = day.events.map(event => {
+      if (event.id !== eventId) return event;
+      return { ...event, ...updates };
+    });
+
+    try {
+      await setDoc(doc(db, 'days', dayId), { ...day, events: newEvents });
+    } catch (err) {
+      console.error('Update Event error:', err);
+      alert('Permission denied or network error. Please ensure you are logged in as admin.');
+    }
   };
 
-  const handleUpdateDay = (dayId: string, updates: Partial<Day>) => {
-    setData(prev => prev.map(day => {
-      if (day.id !== dayId) return day;
-      return { ...day, ...updates };
-    }));
+  const handleUpdateDay = async (dayId: string, updates: Partial<Day>) => {
+    const day = data.find(d => d.id === dayId);
+    if (!day) return;
+
+    try {
+      await updateDoc(doc(db, 'days', dayId), updates);
+    } catch (err) {
+      console.error('Update Day error:', err);
+      alert('Permission denied or network error.');
+    }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (loginCreds.user === 'empower' && loginCreds.pass === 'battlecry121') {
-      setIsAdmin(true);
-      setShowLogin(false);
-      setLoginError(false);
-      setLoginCreds({ user: '', pass: '' });
+      try {
+        await signInWithPopup(auth, provider);
+        setIsAdmin(true);
+        setShowLogin(false);
+        setLoginError(false);
+        setLoginCreds({ user: '', pass: '' });
+      } catch (err) {
+        console.error('Google Sign In Error:', err);
+        setLoginError(true);
+        alert('Google authentication failed. Required for cloud sync.');
+      }
     } else {
       setLoginError(true);
     }
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    setIsAdmin(false);
   };
 
   const textSizeClass = {
@@ -254,7 +360,7 @@ export default function App() {
             </div>
 
             <button
-              onClick={() => isAdmin ? setIsAdmin(false) : setShowLogin(true)}
+              onClick={() => isAdmin ? handleSignOut() : setShowLogin(true)}
               className={`p-2 rounded-lg border transition-all ${
                 isAdmin 
                   ? 'bg-[#ff533d]/10 border-[#ff533d]/40 text-[#ff533d]' 
@@ -265,6 +371,18 @@ export default function App() {
             </button>
           </div>
         </div>
+        
+        {/* Sync Status Bar */}
+        {(isSyncing || syncError) && (
+          <div className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest text-center transition-all ${
+            syncError ? 'bg-red-500 text-white' : 'bg-[#ff533d] text-black'
+          }`}>
+            <div className="flex items-center justify-center gap-2">
+              {syncError ? <AlertCircle className="w-3 h-3" /> : <RefreshCcw className="w-3 h-3 animate-spin" />}
+              {syncError || 'Syncing with cloud...'}
+            </div>
+          </div>
+        )}
       </nav>
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-12">
@@ -563,6 +681,11 @@ export default function App() {
               <p className="text-white/40 text-center text-xs font-bold uppercase tracking-widest mb-10">Restricted Access</p>
               
               <div className="space-y-4">
+                <div className="bg-[#ff533d]/5 border border-[#ff533d]/20 rounded-2xl p-4 mb-4">
+                  <p className="text-[10px] text-[#ff533d] font-black uppercase tracking-widest text-center">
+                    Authorized Admins only. <br/>Google login required for cloud sync.
+                  </p>
+                </div>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                   <input
