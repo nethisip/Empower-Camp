@@ -93,12 +93,12 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
           >
             <Palette className="w-4 h-4" />
           </button>
-          <div className="absolute top-full left-0 mt-1 bg-white border border-stone-200 rounded-lg shadow-xl p-2 hidden group-hover:grid grid-cols-4 gap-1 z-50">
+          <div className="absolute top-full left-0 mt-2 bg-white border border-stone-200 rounded-xl shadow-2xl p-3 hidden group-hover:grid grid-cols-4 gap-2 z-[60]">
             {colors.map((c) => (
               <button
                 key={c.value}
                 onClick={() => editor.chain().focus().setColor(c.value).run()}
-                className="w-6 h-6 rounded border border-stone-100 hover:scale-110 transition-transform"
+                className="w-8 h-8 rounded-lg border border-stone-100 hover:scale-110 shadow-sm transition-transform"
                 style={{ backgroundColor: c.value === 'inherit' ? 'transparent' : c.value }}
                 title={c.name}
               />
@@ -144,7 +144,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       {/* Editor Surface */}
       <EditorContent 
         editor={editor} 
-        className="p-4 min-h-[160px] max-h-[400px] overflow-y-auto prose prose-stone max-w-none focus:outline-none" 
+        className="p-6 min-h-[300px] max-h-[600px] overflow-y-auto prose prose-stone max-w-none focus:outline-none" 
       />
       
       <style>{`
