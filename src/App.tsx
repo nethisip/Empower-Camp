@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import RichTextEditor from './components/RichTextEditor';
 import { 
@@ -29,7 +29,8 @@ import {
   Filter,
   Check,
   Plus,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
 
 // Firebase
@@ -98,6 +99,10 @@ interface Event {
   preview: string;
   details: string;
   poc: string;
+  speaker?: string;
+  verse?: string;
+  goal?: string;
+  pptUrl?: string;
 }
 
 interface Day {
@@ -119,13 +124,37 @@ const INITIAL_DATA: Day[] = [
       { id: 'd1e2', category: 'Orientation', start: '9:00 AM', end: '10:30 AM', title: 'Camp Orientation', preview: 'Introduction to camp schedule, rules, and the Battle Royale.', details: 'Introduction to camp schedule, house rules, and safety protocols. Announcement of the Battle Royale competition details, team names, theme song, and chants.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd1e3', category: 'Games', start: '10:30 AM', end: '12:00 PM', title: 'Indoor Game', preview: 'Fun group games and Bible challenges to break the ice.', details: 'High-energy indoor games designed to foster teamwork and familiarity among campers. Includes Bible-themed trivia and physical challenges.', poc: 'Beth' },
       { id: 'd1e4', category: 'Meal', start: '12:00 PM', end: '1:00 PM', title: 'Lunch', preview: 'Lunch break.', details: 'Nutritious lunch served in the main hall. An opportunity for teams to bond over their first meal together.', poc: 'ER' },
-      { id: 'd1e5', category: 'Lesson', start: '1:00 PM', end: '2:00 PM', title: 'Lesson 1 — Pastor John Boromeo', preview: 'Eyes Locked in the Battle', details: 'Session 1 Speaker: Pastor John Boromeo Title: Eyes Locked in the Battle. Focusing on spiritual alertness and maintaining vision amidst challenges.', poc: 'Pastor John Boromeo' },
+      { 
+        id: 'd1e5', 
+        category: 'Lesson', 
+        start: '1:00 PM', 
+        end: '2:00 PM', 
+        title: 'Lesson 1 — Eyes Locked in the Battle', 
+        preview: 'Speaker: Pastor John Boromeo', 
+        details: 'Introduce the Gospel clearly and help campers understand that sin separates them from God.', 
+        poc: 'Pastor John Boromeo',
+        speaker: 'Pastor John Boromeo',
+        verse: 'Philippians 1:20',
+        goal: 'Introduce the Gospel clearly and help campers understand that sin separates them from God. Lead them to see that true identity is found only in Christ. This session sets the spiritual foundation for the entire camp.'
+      },
       { id: 'd1e6', category: 'Circle', start: '2:00 PM', end: '3:00 PM', title: 'EMPOWER CIRCLE 1', preview: 'Topic: THE GOOD NEWS', details: 'Small group discussion focusing on the core message of the Gospel and its personal impact.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd1e7', category: 'Team', start: '3:00 PM', end: '5:00 PM', title: 'Team Formation', preview: 'Teams organize and build team identity.', details: 'Teams work on their banners, war cries, and identity. This time is crucial for establishing team synergy for the coming competitions.', poc: 'Beth' },
       { id: 'd1e8', category: 'Free Time', start: '5:00 PM', end: '6:00 PM', title: 'Free Time', preview: 'Rest, refresh, or connect with other campers.', details: 'Unstructured time for campers to rest, shower, or engage in personal prayer and reflection.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd1e9', category: 'Meal', start: '6:00 PM', end: '7:00 PM', title: 'Dinner', preview: 'Dinner break.', details: 'Full dinner service for all campers and staff.', poc: 'ER' },
       { id: 'd1e10', category: 'Worship', start: '7:00 PM', end: '8:30 PM', title: 'Worship Night', preview: 'High-energy praise and worship.', details: 'A vibrant concert-style worship experience led by the Empower Worship Team, focusing on exuberant praise.', poc: 'Pastor Amoz and Jeem' },
-      { id: 'd1e11', category: 'Lesson', start: '8:30 PM', end: '9:30 PM', title: 'Lesson 2 — Pastor Jeral Sardiña', preview: 'The Battle Plan for Your Body', details: 'Speaker: Pastor Jeral Sardiña Topic: The Battle Plan for Your Body Theme line: My Story, His Glory. Discussing holiness and the physical vessel.', poc: 'Pastor Jeral Sardiña' },
+      { 
+        id: 'd1e11', 
+        category: 'Lesson', 
+        start: '8:30 PM', 
+        end: '9:30 PM', 
+        title: 'Lesson 2 — The Battle Plan for Your Body', 
+        preview: 'Speaker: Pastor Jerald Sardiña', 
+        details: 'Challenge campers to surrender their lives to Christ.', 
+        poc: 'Pastor Jerald Sardiña',
+        speaker: 'Pastor Jerald Sardiña',
+        verse: 'Philippians 1:20–21',
+        goal: 'Challenge campers to surrender their lives to Christ. Help them understand that their bodies and decisions should honor Him. This session moves them from admiration of Christ to real surrender.'
+      },
       { id: 'd1e12', category: 'Circle', start: '9:30 PM', end: '10:00 PM', title: 'EMPOWER CIRCLE 2', preview: 'Topic: PATAY KUNG PATAY', details: 'Deeper dive into self-denial and the cost of discipleship following the evening session.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd1e13', category: 'Lights Off', start: '10:00 PM', end: '10:30 PM', title: 'Lights Off', preview: 'Rest for the next day.', details: 'Curfew for all campers to ensure adequate rest for Day 2 activities.', poc: 'Pastor Amoz and Jeem' }
     ]
@@ -137,9 +166,33 @@ const INITIAL_DATA: Day[] = [
     theme: 'MY HARDSHIPS, HIS WORSHIP',
     events: [
       { id: 'd2e1', category: 'Warm-Up', start: '6:00 AM', end: '6:30 AM', title: 'Warm-Up / Energizers', preview: 'Morning energizers to start the day.', details: 'Physical activities and spiritual wake-up calls to prepare the body and mind for a demanding day.', poc: 'Pastor Amoz and Jeem' },
-      { id: 'd2e2', category: 'Lesson', start: '6:30 AM', end: '7:00 AM', title: 'Lesson 3 — Pastor Joseph', preview: 'Winning the Battle Within', details: 'Speaker: Pastor Joseph. Focusing on internal spiritual warfare and personal victory through Christ.', poc: 'Pastor Joseph' },
+      { 
+        id: 'd2e2', 
+        category: 'Lesson', 
+        start: '6:30 AM', 
+        end: '7:00 AM', 
+        title: 'Lesson 3 — Winning the Battle Within', 
+        preview: 'Speaker: Pastor Joseph Ruetas', 
+        details: 'Teach campers that the real battle starts in the heart and mind.', 
+        poc: 'Pastor Joseph Ruetas',
+        speaker: 'Pastor Joseph Ruetas',
+        verse: 'Philippians 1:9–10',
+        goal: 'Teach campers that the real battle starts in the heart and mind. Encourage them to grow in discernment and purity. The goal is to prepare their inner life for spiritual victory.'
+      },
       { id: 'd2e3', category: 'Meal', start: '7:00 AM', end: '8:00 AM', title: 'Breakfast', preview: 'Breakfast break.', details: 'Morning meal to fuel the teams for the upcoming physical challenges.', poc: 'ER' },
-      { id: 'd2e4', category: 'Lesson', start: '8:00 AM', end: '9:00 AM', title: 'Lesson 4 — Ptr. Amoz', preview: 'Surrendering Control', details: 'Speaker: Ptr. Amoz Topic: Surrendering Control in the Battle. Learning the power of dependence on God.', poc: 'Ptr. Amoz' },
+      { 
+        id: 'd2e4', 
+        category: 'Lesson', 
+        start: '8:00 AM', 
+        end: '9:00 AM', 
+        title: 'Lesson 4 — Surrendering Control in the Battle', 
+        preview: 'Speaker: Pastor Amoz Mendoza', 
+        details: 'Help campers understand that Christ must be the center of their lives.', 
+        poc: 'Pastor Amoz Mendoza',
+        speaker: 'Pastor Amoz Mendoza',
+        verse: 'Philippians 1:21',
+        goal: 'Help campers understand that Christ must be the center of their lives. Christianity is not just following Christ but letting Christ define their life and purpose. This session deepens their surrender to Him.'
+      },
       { id: 'd2e5', category: 'Circle', start: '9:00 AM', end: '9:30 AM', title: 'EMPOWER CIRCLE 3', preview: 'Topic: Walang Atrasan', details: 'Group commitment session on perseverance and "No Retreat" mindset.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd2e6', category: 'Briefing', start: '9:30 AM', end: '10:00 AM', title: 'The Great 8 Explanation', preview: 'Instructions for the challenge.', details: 'Detailed instructions and safety rules for the main outdoor team competition.', poc: 'Beth' },
       { id: 'd2e7', category: 'Challenge', start: '10:00 AM', end: '11:30 AM', title: 'The Great 8 Challenges', preview: 'Outdoor team challenges.', details: 'A circuit of 8 demanding tasks that test strength, ingenuity, and teamwork. The heart of the Battle Royale.', poc: 'Beth' },
@@ -150,7 +203,19 @@ const INITIAL_DATA: Day[] = [
       { id: 'd2e11', category: 'Battle Royale', start: '4:30 PM', end: '5:30 PM', title: 'The Battle Royale', preview: 'The Last Battle.', details: 'The grand finale of the physical competitions. All teams converge for a final high-stakes showdown.', poc: 'Beth' },
       { id: 'd2e17', category: 'Circle', start: '5:30 PM', end: '6:00 PM', title: 'EMPOWER CIRCLE 4', preview: 'Small group processing.', details: 'Post-battle royale processing and team reflection before the evening activities.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd2e12', category: 'Presentation', start: '7:00 PM', end: '8:30 PM', title: 'Team Presentation', preview: 'Sprints, songs, or performances.', details: 'Creative expressions of faith and the camp theme. Maximum 5 minutes per team. Judged for creativity and message.', poc: 'Beth' },
-      { id: 'd2e13', category: 'Lesson', start: '8:30 PM', end: '9:30 PM', title: 'Lesson 5 — Ptr. Neth Isip', preview: 'Walking Worthy', details: 'Speaker: Ptr. Neth Isip Topic: Walking Worthy in the Battle. Theme line: My Hardships, His Worship.', poc: 'Ptr. Neth Isip' },
+      { 
+        id: 'd2e13', 
+        category: 'Lesson', 
+        start: '8:30 PM', 
+        end: '9:30 PM', 
+        title: 'Lesson 5 — Walking Worthy in the Battle', 
+        preview: 'Speaker: Ptr. Neth Isip', 
+        details: 'Call campers to live a life worthy of the Gospel.', 
+        poc: 'Ptr. Neth Isip',
+        speaker: 'Ptr. Neth Isip',
+        verse: 'Philippians 1:27',
+        goal: 'Call campers to live a life worthy of the Gospel. Challenge them to stand firm in faith and live as citizens of Heaven. This session leads them to full surrender during the bonfire commitment.'
+      },
       { id: 'd2e14', category: 'Campfire', start: '9:30 PM', end: '11:00 PM', title: 'Campfire', preview: 'What Are You Burning?', details: 'Facilitators: Ton / Theo / Lester / Venzen. Theme: What Are You Burning Tonight? A symbolic act of surrendering burdens.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd2e15', category: 'Lights Off', start: '11:00 PM', end: '11:30 PM', title: 'Lights Off', preview: 'Final night rest.', details: 'Rest for the concluding day of the camp.', poc: 'Pastor Amoz and Jeem' }
     ]
@@ -161,11 +226,35 @@ const INITIAL_DATA: Day[] = [
     date: 'May 1',
     theme: 'MY BODY, HIS CHOICE',
     events: [
-      { id: 'd3e1', category: 'Lesson', start: '6:00 AM', end: '6:30 AM', title: 'Lesson 6 — Pastor Philip', preview: 'Standing Firm', details: 'Speaker: Pastor Philip Topic: Standing Firm in the Battle. Concluding spiritual instructions.', poc: 'Pastor Philip' },
+      { 
+        id: 'd3e1', 
+        category: 'Lesson', 
+        start: '6:00 AM', 
+        end: '6:15 AM', 
+        title: 'Lesson 6 — Standing Firm in the Battle', 
+        preview: 'Speaker: Pastor Philip Dumlao', 
+        details: 'Prepare campers for the pressures they will face after camp.', 
+        poc: 'Pastor Philip Dumlao',
+        speaker: 'Pastor Philip Dumlao',
+        verse: 'Philippians 1:27–28',
+        goal: 'Prepare campers for the pressures they will face after camp. Encourage them to stand firm in faith and support one another. The focus is staying faithful even when challenges come.'
+      },
       { id: 'd3e8', category: 'Counselling', start: '6:30 AM', end: '7:00 AM', title: 'FINAL Counselling Session', preview: 'Sharing of social contacts.', details: 'Final ministry moment for counselling and intentional sharing of social contacts to maintain community after camp.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd3e2', category: 'Meal', start: '7:00 AM', end: '8:00 AM', title: 'Breakfast', preview: 'Last camp breakfast.', details: 'Final shared meal and community reflection.', poc: 'ER' },
       { id: 'd3e3', category: 'Pack-Up', start: '8:00 AM', end: '9:00 AM', title: 'Pack-Up & Cleanup', preview: 'Balik Phone.', details: 'Clearing rooms and returning camp equipment. Mobile phones are returned to campers.', poc: 'Pastor Amoz and Jeem' },
-      { id: 'd3e4', category: 'Lesson', start: '9:00 AM', end: '10:00 AM', title: 'Lesson 7 — Ptr. YuSef Doca', preview: 'Displaying Christ', details: 'Speaker: Ptr. YuSef Doca Topic: Displaying Christ in the Battle. Application after camp.', poc: 'Ptr. YuSef Doca' },
+      { 
+        id: 'd3e4', 
+        category: 'Lesson', 
+        start: '9:00 AM', 
+        end: '10:00 AM', 
+        title: 'Lesson 7 — Displaying Christ in the Battle', 
+        preview: 'Speaker: Ptr. Yusef Doca', 
+        details: 'Challenge campers to live boldly for Christ in everyday life.', 
+        poc: 'Ptr. Yusef Doca',
+        speaker: 'Ptr. Yusef Doca',
+        verse: 'Philippians 1:13',
+        goal: 'Challenge campers to live boldly for Christ in everyday life. Help them realize that their life should visibly reflect Jesus to others. The goal is to send them home ready to influence their world for Christ.'
+      },
       { id: 'd3e5', category: 'Q&A', start: '10:00 AM', end: '11:30 AM', title: 'Q&A Session', preview: 'Open floor discussion.', details: 'An interactive session addressing campers\' questions and providing clarity on the lessons learned.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd3e9', category: 'Circle', start: '11:30 AM', end: '12:00 PM', title: 'EMPOWER CIRCLE 5', preview: 'Final processing.', details: 'Concluding group session for reflection and looking forward to the mission beyond camp.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd3e10', category: 'Meal', start: '12:00 PM', end: '1:00 PM', title: 'Lunch', preview: 'Final camp lunch.', details: 'Concluding meal shared as a camp community.', poc: 'ER' },
@@ -208,6 +297,7 @@ export default function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const hasUnsavedChangesRef = useRef(false);
   const [showLogin, setShowLogin] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'>('xl');
   const [filter, setFilter] = useState<'ALL' | 'LESSON' | 'CIRCLE'>('ALL');
@@ -220,17 +310,33 @@ export default function App() {
     title: '',
     preview: '',
     details: '',
-    poc: ''
+    poc: '',
+    speaker: '',
+    verse: '',
+    goal: '',
+    pptUrl: ''
   });
+
+  // Use refs for sync logic to avoid re-subscribing listeners that cause data clobbering
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
 
   // Firestore Sync
   useEffect(() => {
     if (!isConfigValid || !db) return;
     
+    let isMounted = true;
+    let isInitialLoad = true;
+
+    console.log('Attaching Cloud Sync Listener...');
     setIsSyncing(true);
+    
     const unsub = onSnapshot(collection(db, 'days'), (snapshot) => {
+      if (!isMounted) return;
+
       if (snapshot.empty) {
-        // ONLY seed if we are admin. Otherwise just show initial data and wait.
+        // ONLY seed if we are admin.
         if (isAdmin) {
           const seedData = async () => {
             try {
@@ -238,24 +344,33 @@ export default function App() {
                 await setDoc(doc(db, 'days', day.id), day);
               }
             } catch (err) {
-              console.warn('Initial seeding failed (likely due to permissions).');
+              console.warn('Initial seeding failed.');
             }
           };
-          seedData().then(() => setIsSyncing(false));
+          seedData().then(() => {
+            if (isMounted) setIsSyncing(false);
+          });
         } else {
           setData(INITIAL_DATA);
           setIsSyncing(false);
         }
       } else {
+        // CRITICAL PROTECTION:
+        // If the user has unsaved local changes, we MUST NOT overwrite them with cloud data.
+        // We also check a ref to avoid the dependency race condition.
+        if (hasUnsavedChangesRef.current) {
+          console.log('Cloud update available, but deferred to protect your current Draft.');
+          setIsSyncing(false);
+          return;
+        }
+
         const daysFromDb = snapshot.docs.map(doc => doc.data() as Day);
         
-        // Merge with INITIAL_DATA to ensure all days are always present
         const merged = INITIAL_DATA.map(initDay => {
           const fromDb = daysFromDb.find(d => d.id === initDay.id);
           return fromDb || initDay;
         });
 
-        // Add any extra days that might be in DB but not in INITIAL_DATA
         daysFromDb.forEach(dbDay => {
           if (!merged.find(m => m.id === dbDay.id)) {
             merged.push(dbDay);
@@ -265,15 +380,22 @@ export default function App() {
         merged.sort((a, b) => a.id.localeCompare(b.id));
         setData(merged);
         setIsSyncing(false);
+        setLastSaved(new Date());
       }
+      isInitialLoad = false;
     }, (err) => {
       console.error('Firestore Sync Error:', err);
-      setSyncError('Cloud sync interrupted. Showing local data.');
-      setIsSyncing(false);
+      if (isMounted) {
+        setSyncError('Cloud sync interrupted. Showing local data.');
+        setIsSyncing(false);
+      }
     });
 
-    return () => unsub();
-  }, []);
+    return () => {
+      isMounted = false;
+      unsub();
+    };
+  }, [db, isAdmin]); // REMOVED hasUnsavedChanges from dependencies to prevent re-subscribe clobber
 
   // Auth State
   useEffect(() => {
@@ -295,10 +417,11 @@ export default function App() {
 
     return onAuthStateChanged(auth, (user) => {
       setFbUser(user);
-      if (user && user.email === 'nethisip1313@gmail.com' && user.emailVerified) {
+      if (user && user.email === 'nethisip1313@gmail.com') {
         setIsAdmin(true);
-        // Only close if we are in admin mode
         if (showLogin) setShowLogin(false);
+      } else {
+        setIsAdmin(false);
       }
     });
   }, []);
@@ -369,22 +492,24 @@ export default function App() {
 
   const handlePushToCloud = async () => {
     if (!isConfigValid || !db || !isAdmin) return;
-    if (!window.confirm('Do you want to save all current changes to the cloud? This will update the schedule for everyone.')) return;
-
+    
     setIsSaving(true);
     try {
+      console.log('Starting cloud push...');
       const batch = writeBatch(db);
       for (const day of data) {
         batch.set(doc(db, 'days', day.id), day);
       }
       await batch.commit();
+      console.log('Cloud push successful!');
       
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
-      alert('Schedule updated successfully for all users!');
+      // Remove alert to prevent iFrame blocks, use the visual status bar instead
     } catch (err) {
       console.error('Push error:', err);
-      alert('Failed to save. Ensure you are signed in as admin.');
+      setSyncError('Save failed. Please check internet.');
+      setTimeout(() => setSyncError(null), 5000);
     } finally {
       setIsSaving(false);
     }
@@ -417,7 +542,11 @@ export default function App() {
       title: '',
       preview: '',
       details: '',
-      poc: ''
+      poc: '',
+      speaker: '',
+      verse: '',
+      goal: '',
+      pptUrl: ''
     });
   };
 
@@ -640,58 +769,59 @@ export default function App() {
             </div>
           </div>
           
-          {/* Unified Navigation Row - Fixed 5 Columns for Stability */}
-          <div className="p-1 pb-3 grid grid-cols-5 gap-1.5 px-2">
-            {/* Day 1, 2, 3 Anchors */}
-            {['day1', 'day2', 'day3'].map((id) => {
-              const day = data.find(d => d.id === id);
-              const dayNum = id.replace('day', '');
-              const dateLabel = day ? day.date : (id === 'day1' ? 'Apr 29' : id === 'day2' ? 'Apr 30' : 'May 1');
-              
-              return (
-                <button
-                  key={id}
-                  onClick={() => {
-                    setActiveDayId(id);
-                    setFilter('ALL');
-                  }}
-                  className={`py-3 rounded-2xl text-[10px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[65px] ${
-                    activeDayId === id && filter === 'ALL'
-                      ? 'bg-[#ff533d] border-[#ff533d] text-black shadow-lg scale-[1.05]' 
-                      : 'bg-white/5 border-white/5 text-white/30'
-                  }`}
-                >
-                  <span className="block mb-0.5 opacity-60 truncate w-full px-1">{day ? day.label : `Day ${dayNum}`}</span>
-                  <span className="font-black text-[12px] leading-none">{dateLabel}</span>
-                </button>
-              );
-            })}
+          {/* Unified Navigation Hub */}
+          <div className="p-2 space-y-2">
+            {/* Row 1: Day Selectors */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {['day1', 'day2', 'day3'].map((id) => {
+                const day = data.find(d => d.id === id);
+                const dayNum = id.replace('day', '');
+                const dateLabel = day ? day.date : (id === 'day1' ? 'Apr 29' : id === 'day2' ? 'Apr 30' : 'May 1');
+                
+                return (
+                  <button
+                    key={id}
+                    onClick={() => {
+                      setActiveDayId(id);
+                      setFilter('ALL');
+                    }}
+                    className={`py-4 rounded-2xl text-[10px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[65px] ${
+                      activeDayId === id && filter === 'ALL'
+                        ? 'bg-[#ff533d] border-[#ff533d] text-black shadow-lg scale-[1.02]' 
+                        : 'bg-white/5 border-white/5 text-white/30 hover:border-white/10'
+                    }`}
+                  >
+                    <span className="block mb-0.5 opacity-60 truncate w-full px-1 text-[8px] tracking-tight">{day ? day.label : `Day ${dayNum}`}</span>
+                    <span className="font-black text-[14px] leading-none">{dateLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Camp Lessons Filter */}
-            <button
-              onClick={() => setFilter('LESSON')}
-              className={`py-3 rounded-2xl text-[9px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[65px] ${
-                filter === 'LESSON'
-                  ? 'bg-red-500 border-red-500 text-white shadow-lg scale-[1.05]' 
-                  : 'bg-white/5 border-white/5 text-red-500/50'
-              }`}
-            >
-              <span className="block mb-0.5 opacity-60">Camp</span>
-              <span className="text-[12px] font-black leading-none">Lesson</span>
-            </button>
+            {/* Row 2: Basic Filters */}
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                onClick={() => setFilter('LESSON')}
+                className={`py-3 rounded-2xl text-[9px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[55px] ${
+                  filter === 'LESSON'
+                    ? 'bg-red-500 border-red-500 text-white shadow-lg scale-[1.02]' 
+                    : 'bg-white/5 border-white/5 text-red-500/50 hover:border-red-500/20'
+                }`}
+              >
+                <span className="text-[11px] font-black leading-none tracking-widest">Camp Lessons</span>
+              </button>
 
-            {/* Empower Circle Filter */}
-            <button
-              onClick={() => setFilter('CIRCLE')}
-              className={`py-3 rounded-2xl text-[9px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[65px] ${
-                filter === 'CIRCLE'
-                  ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg scale-[1.05]' 
-                  : 'bg-white/5 border-white/5 text-emerald-500/50'
-              }`}
-            >
-              <span className="block mb-0.5 opacity-60">Empower</span>
-              <span className="text-[12px] font-black leading-none">Circle</span>
-            </button>
+              <button
+                onClick={() => setFilter('CIRCLE')}
+                className={`py-3 rounded-2xl text-[9px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[55px] ${
+                  filter === 'CIRCLE'
+                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg scale-[1.02]' 
+                    : 'bg-white/5 border-white/5 text-emerald-500/50 hover:border-emerald-500/20'
+                }`}
+              >
+                <span className="text-[11px] font-black leading-none tracking-widest">Empower Circles</span>
+              </button>
+            </div>
           </div>
         </div>
         
@@ -987,39 +1117,111 @@ export default function App() {
               {/* Modal Content Area - MAX READABILITY */}
               <div className="flex-1 p-6 sm:p-12 overflow-y-auto bg-white no-scrollbar scroll-smooth pb-32 sm:pb-24">
                 {isEditing ? (
-                  <div className="space-y-6 max-w-2xl mx-auto">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-6 max-w-2xl mx-auto">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">Speaker</label>
+                          <input
+                            className="w-full bg-white border border-stone-200 rounded-lg p-3 text-sm font-bold"
+                            value={selectedEvent.speaker || ''}
+                            onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { speaker: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">Verse</label>
+                          <input
+                            className="w-full bg-white border border-stone-200 rounded-lg p-3 text-sm font-bold"
+                            value={selectedEvent.verse || ''}
+                            onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { verse: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">Category</label>
+                          <input
+                            className="w-full bg-white border border-stone-200 rounded-lg p-3 text-sm font-bold"
+                            value={selectedEvent.category}
+                            onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { category: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">PIC / Coordinator</label>
+                          <input
+                            className="w-full bg-white border border-stone-200 rounded-lg p-3 text-sm font-bold"
+                            value={selectedEvent.poc}
+                            onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { poc: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
                       <div>
-                        <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">Label</label>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">PPT Download Link (URL)</label>
                         <input
                           className="w-full bg-white border border-stone-200 rounded-lg p-3 text-sm font-bold"
-                          value={selectedEvent.category}
-                          onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { category: e.target.value })}
+                          placeholder="https://docs.google.com/presentation/d/..."
+                          value={selectedEvent.pptUrl || ''}
+                          onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { pptUrl: e.target.value })}
                         />
                       </div>
+
                       <div>
-                        <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">PIC</label>
-                        <input
-                          className="w-full bg-white border border-stone-200 rounded-lg p-3 text-sm font-bold"
-                          value={selectedEvent.poc}
-                          onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { poc: e.target.value })}
+                        <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">Session Goal</label>
+                        <textarea
+                          className="w-full bg-white border border-stone-200 rounded-xl p-4 text-sm font-medium min-h-[100px]"
+                          value={selectedEvent.goal || ''}
+                          onChange={(e) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { goal: e.target.value })}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">Full Content & Media</label>
+                        <RichTextEditor 
+                          content={selectedEvent.details}
+                          onChange={(content) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { details: content })}
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className="text-[9px] font-black uppercase tracking-widest text-stone-400 mb-1 block">Full Content & Media</label>
-                      <RichTextEditor 
-                        content={selectedEvent.details}
-                        onChange={(content) => handleUpdateEvent(selectedEventDayId!, selectedEvent.id, { details: content })}
-                      />
-                    </div>
-                  </div>
                 ) : (
                   <div className="max-w-3xl mx-auto space-y-10">
+                    {/* Lesson Header Metadata */}
+                    {selectedEvent.category.toLowerCase().includes('lesson') && (
+                      <div className="grid gap-6">
+                        <div className="p-8 rounded-[2.5rem] bg-red-50 border border-red-100/50 space-y-6">
+                          <div className="flex flex-col sm:flex-row gap-6">
+                            <div className="flex-1">
+                              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400 mb-1">Speaker</div>
+                              <div className="text-2xl font-black text-stone-900 leading-tight">{selectedEvent.speaker || 'No Speaker Set'}</div>
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400 mb-1">Theme Verse</div>
+                              <div className="text-xl font-bold italic text-stone-700 leading-tight">"{selectedEvent.verse || '...'}"</div>
+                            </div>
+                          </div>
+                          <div className="pt-6 border-t border-red-200/30">
+                            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400 mb-2">Session Goal</div>
+                            <p className="text-stone-600 font-medium leading-relaxed">{selectedEvent.goal || 'Goal to be announced.'}</p>
+                          </div>
+                          {selectedEvent.pptUrl && (
+                            <a 
+                              href={selectedEvent.pptUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-3 bg-red-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg active:scale-95"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download Session PPT
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-8">
                       <div className="flex items-center gap-2 text-stone-400 border-b border-stone-100 pb-3">
                         <Info className="w-4 h-4 text-[#ff533d]" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Detailed Plan</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Detailed Content</span>
                       </div>
                       
                       <div className="prose prose-stone max-w-none prose-p:text-xl prose-p:leading-relaxed sm:prose-xl prose-p:sm:leading-loose">
@@ -1035,7 +1237,7 @@ export default function App() {
                         <User className="w-6 h-6" />
                       </div>
                       <div>
-                        <div className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400 mb-0.5">In-Charge</div>
+                        <div className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400 mb-0.5">PIC / Facilitator</div>
                         <div className="text-lg font-black text-stone-900 uppercase tracking-tight leading-none">{selectedEvent.poc}</div>
                       </div>
                     </div>
@@ -1090,7 +1292,7 @@ export default function App() {
               className="relative w-full max-w-lg bg-[#ffffff] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
             >
               <div className="p-8 pb-4 flex justify-between items-center border-b border-stone-100">
-                <h3 className="text-2xl font-black text-stone-900 uppercase tracking-tight">Camp Info</h3>
+                <h3 className="text-2xl font-black text-stone-900 uppercase tracking-tight">Camp Hub</h3>
                 <button 
                   onClick={() => setShowInfo(false)}
                   className="p-2 bg-stone-50 rounded-xl text-stone-400 hover:text-stone-900 transition-colors"
@@ -1099,77 +1301,80 @@ export default function App() {
                 </button>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-8 pt-6 space-y-8 no-scrollbar">
+              <div className="flex-1 overflow-y-auto p-8 pt-6 space-y-12 no-scrollbar">
+                {/* Things to Bring */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-[#ff533d]">
+                    <Check className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Things to Bring</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      'BIBLE', 'BALLPEN', 'SLIPPERS', 'TOWEL', 'TOILETRIES', 
+                      'TUMBLER', 'HYGIENE KIT', 'BLANKET / PILLOW', 
+                      'CLOTHES (FOR 3 DAYS)', 'CLOTHES (GAMES)', 'PERSONAL MEDICINE'
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-stone-50 text-stone-900 font-black text-[11px] uppercase tracking-widest border border-stone-100">
+                        <div className="w-2 h-2 rounded-full bg-[#ff533d]" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Consent Form */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-blue-500">
+                    <Info className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Parental Consent</span>
+                  </div>
+                  <div className="p-6 rounded-[2rem] bg-blue-50 border border-blue-100 space-y-4">
+                    <p className="text-[10px] font-bold text-blue-800 leading-relaxed uppercase tracking-wider">
+                      Please ensure your Parental Consent Form is filled out and submitted. You can view the details below:
+                    </p>
+                    <div className="bg-white p-6 rounded-2xl border border-blue-100 text-[10px] font-bold text-stone-600 space-y-2 uppercase leading-relaxed">
+                      Theme: Battle Cry – “To Live Christ, To Die Gain”<br/>
+                      Theme Verse: Philippians 1:20–21<br/>
+                      Venue: Emmaus Bible Camp, Malolos, Bulacan<br/>
+                      Date: April 29 – May 1, 2026<br/>
+                      Contact: Ptr. Neth Isip (0917 154 1527)
+                    </div>
+                    <button 
+                      onClick={() => window.print()}
+                      className="w-full py-4 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all"
+                    >
+                      Print for Signing
+                    </button>
+                  </div>
+                </div>
+
                 {/* Venue */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-[#ff533d]">
                     <Type className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Venue Location</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Location</span>
                   </div>
                   <div className="p-5 rounded-3xl bg-stone-50 border border-stone-100">
                     <h4 className="text-lg font-black text-stone-900 mb-2">Emmaus Bible Camp</h4>
-                    <p className="text-stone-500 text-sm mb-4">Brgy. Sumalo, Hermosa, Bataan</p>
+                    <p className="text-stone-500 text-sm mb-4 font-bold uppercase">Malolos, Bulacan</p>
                     <a 
-                      href="https://www.google.com/maps/place/Emmaus+Bible+Camp/@14.8424352,120.826643,17z/data=!3m1!4b1!4m6!3m5!1s0x339653b5102a5f45:0xd24178759c33a343!8m2!3d14.84243!4d120.8292179!16s%2Fg%2F11c1xppdh4?entry=ttu&g_ep=EgoyMDI2MDQxNS4wIKXMDSoASAFQAw%3D%3D"
+                      href="https://www.google.com/maps/place/Emmaus+Bible+Camp/@14.8424352,120.826643,17z"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 bg-[#ff533d] text-white px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md"
                     >
-                      Open in Google Maps
+                      Google Maps
                     </a>
-                  </div>
-                </div>
-
-                {/* Things to Bring */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-emerald-500">
-                    <Check className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Things to Bring</span>
-                  </div>
-                  <ul className="grid grid-cols-1 gap-2">
-                    {[
-                      'Bible & Notebook',
-                      'Personal Toiletries',
-                      'Beddings (Blanket/Pillow)',
-                      'Clothes for 3 Days',
-                      'Sports/Games Attire',
-                      'Water Bottle',
-                      'Personal Medications'
-                    ].map((item, idx) => (
-                      <li key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-stone-50 text-stone-600 font-bold text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Rules & Reminders */}
-                <div className="space-y-4 pb-4">
-                  <div className="flex items-center gap-2 text-amber-500">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Rules & Reminders</span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100/50">
-                      <p className="text-amber-800 text-xs font-bold leading-relaxed">
-                        • Be on time for all sessions.<br/>
-                        • Observe silence during rest hours.<br/>
-                        • Respect camp property and staff.<br/>
-                        • No gadgets allowed during sessions.<br/>
-                        • Always wear your camp ID.
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-8 bg-stone-50 border-t border-stone-100">
+              <div className="p-6 bg-stone-50 border-t border-stone-100">
                 <button
                   onClick={() => setShowInfo(false)}
-                  className="w-full bg-black text-white py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em]"
+                  className="w-full bg-black text-white py-4 rounded-2xl text-xs font-black uppercase tracking-[2px]"
                 >
-                  Close Information
+                  Close Hub
                 </button>
               </div>
             </motion.div>
