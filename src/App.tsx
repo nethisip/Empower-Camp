@@ -210,6 +210,8 @@ export default function App() {
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'>('xl');
   const [filter, setFilter] = useState<'ALL' | 'LESSON' | 'CIRCLE'>('ALL');
@@ -363,11 +365,15 @@ export default function App() {
     // Auto-sort events by start time
     newEvents.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
 
+    setIsSaving(true);
     try {
       await setDoc(doc(db, 'days', dayId), { ...day, events: newEvents });
+      setLastSaved(new Date());
     } catch (err) {
       console.error('Update Event error:', err);
-      alert('Permission denied or network error. Please ensure you are logged in as admin.');
+      alert('Permission denied or network error. Are you signed in as nethisip1313@gmail.com?');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -376,11 +382,15 @@ export default function App() {
     const day = data.find(d => d.id === dayId);
     if (!day) return;
 
+    setIsSaving(true);
     try {
       await updateDoc(doc(db, 'days', dayId), updates);
+      setLastSaved(new Date());
     } catch (err) {
       console.error('Update Day error:', err);
       alert('Permission denied or network error.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -397,8 +407,10 @@ export default function App() {
     const newEvents = [...day.events, eventToAdd];
     newEvents.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
 
+    setIsSaving(true);
     try {
       await setDoc(doc(db, 'days', activeDayId), { ...day, events: newEvents });
+      setLastSaved(new Date());
       setShowAddEvent(false);
       setNewEvent({
         category: 'Lesson',
@@ -412,6 +424,8 @@ export default function App() {
     } catch (err) {
       console.error('Add Event error:', err);
       alert('Failed to add event.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -421,29 +435,34 @@ export default function App() {
     if (!day) return;
 
     const newEvents = day.events.filter(e => e.id !== eventId);
+    setIsSaving(true);
     try {
       await setDoc(doc(db, 'days', dayId), { ...day, events: newEvents });
+      setLastSaved(new Date());
       setSelectedEventId(null);
     } catch (err) {
       console.error('Delete error:', err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleRestoreDefaults = async () => {
     if (!isConfigValid || !db || !window.confirm('This will RESET ALL DAYS (1, 2, and 3) to their original camp schedule. Current custom changes will be lost. Proceed?')) return;
     
-    setIsSyncing(true);
+    setIsSaving(true);
     try {
       for (const day of INITIAL_DATA) {
         await setDoc(doc(db, 'days', day.id), day);
       }
-      alert('Day 1, 2, and 3 restored successfully!');
+      setLastSaved(new Date());
+      alert('Day 1, 2, and 3 restored successfully and synced to cloud!');
       setShowDaySettings(false);
     } catch (err) {
       console.error('Restore error:', err);
       alert('Failed to restore. Check permissions.');
     } finally {
-      setIsSyncing(false);
+      setIsSaving(false);
     }
   };
 
@@ -664,13 +683,27 @@ export default function App() {
         </div>
         
         {/* Sync Status Bar */}
-        {(isSyncing || syncError) && (
+        {(isSyncing || isSaving || syncError || lastSaved) && (
           <div className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest text-center transition-all ${
-            syncError ? 'bg-red-500 text-white' : 'bg-[#ff533d] text-black'
+            syncError ? 'bg-red-500 text-white' : 
+            isSaving ? 'bg-amber-500 text-white' :
+            lastSaved ? 'bg-emerald-500 text-white' :
+            'bg-[#ff533d] text-black'
           }`}>
             <div className="flex items-center justify-center gap-2">
-              {syncError ? <AlertCircle className="w-3 h-3" /> : <RefreshCcw className="w-3 h-3 animate-spin" />}
-              {syncError || 'Syncing with cloud...'}
+              {isSyncing || isSaving ? (
+                <RefreshCcw className="w-3 h-3 animate-spin" />
+              ) : syncError ? (
+                <AlertCircle className="w-3 h-3" />
+              ) : (
+                <Check className="w-3 h-3" />
+              )}
+              <span>
+                {syncError ? syncError : 
+                 isSaving ? 'Saving to Cloud...' : 
+                 isSyncing ? 'Syncing with cloud...' : 
+                 `Changes Saved to Cloud (${lastSaved?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`}
+              </span>
             </div>
           </div>
         )}
