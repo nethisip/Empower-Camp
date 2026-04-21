@@ -36,11 +36,13 @@ import {
 import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, 
+  initializeFirestore,
   collection, 
   doc, 
   onSnapshot, 
   setDoc, 
   updateDoc, 
+  writeBatch,
   getDocFromServer, 
   enableIndexedDbPersistence 
 } from 'firebase/firestore';
@@ -75,9 +77,11 @@ const provider = new GoogleAuthProvider();
 if (isConfigValid) {
   try {
     app = initializeApp(firebaseConfig);
-    db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)") 
-      ? getFirestore(app, firebaseConfig.firestoreDatabaseId) 
-      : getFirestore(app);
+    // Force Long Polling for maximum reliability in environments where WebSockets might be throttled or blocked
+    db = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+      experimentalAutoDetectLongPolling: false // Force it to be sure
+    });
     auth = getAuth(app);
   } catch (error: any) {
     console.error("Firebase initialization failed:", error);
@@ -201,7 +205,9 @@ export default function App() {
   const [showInfo, setShowInfo] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'>('xl');
   const [filter, setFilter] = useState<'ALL' | 'LESSON' | 'CIRCLE'>('ALL');
@@ -224,19 +230,22 @@ export default function App() {
     setIsSyncing(true);
     const unsub = onSnapshot(collection(db, 'days'), (snapshot) => {
       if (snapshot.empty) {
-        // Seed initial data if DB is empty 
-        const seedData = async () => {
-          try {
-            for (const day of INITIAL_DATA) {
-              await setDoc(doc(db, 'days', day.id), day);
+        // ONLY seed if we are admin. Otherwise just show initial data and wait.
+        if (isAdmin) {
+          const seedData = async () => {
+            try {
+              for (const day of INITIAL_DATA) {
+                await setDoc(doc(db, 'days', day.id), day);
+              }
+            } catch (err) {
+              console.warn('Initial seeding failed (likely due to permissions).');
             }
-          } catch (err) {
-            // If they aren't admin, this will fail. That's fine, 
-            // the admin just needs to log in once to populate.
-            console.warn('Initial seeding failed (likely due to permissions). Admin login required for first-time setup.');
-          }
-        };
-        seedData().then(() => setIsSyncing(false));
+          };
+          seedData().then(() => setIsSyncing(false));
+        } else {
+          setData(INITIAL_DATA);
+          setIsSyncing(false);
+        }
       } else {
         const daysFromDb = snapshot.docs.map(doc => doc.data() as Day);
         
@@ -332,49 +341,57 @@ export default function App() {
     : null;
 
   const handleUpdateEvent = async (dayId: string, eventId: string, updates: Partial<Event>) => {
-    if (!isConfigValid || !db) return;
-    const day = data.find(d => d.id === dayId);
-    if (!day) return;
-
-    let newEvents = day.events.map(event => {
-      if (event.id !== eventId) return event;
-      return { ...event, ...updates };
-    });
-
-    // Auto-sort events by start time
-    newEvents.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
-
-    setIsSaving(true);
-    try {
-      await setDoc(doc(db, 'days', dayId), { ...day, events: newEvents });
-      setLastSaved(new Date());
-    } catch (err) {
-      console.error('Update Event error:', err);
-      alert('Permission denied or network error. Are you signed in as nethisip1313@gmail.com?');
-    } finally {
-      setIsSaving(false);
-    }
+    if (!isAdmin) return;
+    
+    setData(prev => prev.map(day => {
+      if (day.id !== dayId) return day;
+      const newEvents = day.events.map(event => {
+        if (event.id !== eventId) return event;
+        return { ...event, ...updates };
+      });
+      newEvents.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+      return { ...day, events: newEvents };
+    }));
+    
+    setHasUnsavedChanges(true);
   };
 
   const handleUpdateDay = async (dayId: string, updates: Partial<Day>) => {
-    if (!isConfigValid || !db) return;
-    const day = data.find(d => d.id === dayId);
-    if (!day) return;
+    if (!isAdmin) return;
+    
+    setData(prev => prev.map(day => {
+      if (day.id !== dayId) return day;
+      return { ...day, ...updates };
+    }));
+    
+    setHasUnsavedChanges(true);
+  };
+
+  const handlePushToCloud = async () => {
+    if (!isConfigValid || !db || !isAdmin) return;
+    if (!window.confirm('Do you want to save all current changes to the cloud? This will update the schedule for everyone.')) return;
 
     setIsSaving(true);
     try {
-      await updateDoc(doc(db, 'days', dayId), updates);
+      const batch = writeBatch(db);
+      for (const day of data) {
+        batch.set(doc(db, 'days', day.id), day);
+      }
+      await batch.commit();
+      
       setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+      alert('Schedule updated successfully for all users!');
     } catch (err) {
-      console.error('Update Day error:', err);
-      alert('Permission denied or network error.');
+      console.error('Push error:', err);
+      alert('Failed to save. Ensure you are signed in as admin.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleAddEvent = async () => {
-    if (!isConfigValid || !db) return;
+    if (!isAdmin) return;
     const day = data.find(d => d.id === activeDayId);
     if (!day) return;
 
@@ -386,54 +403,70 @@ export default function App() {
     const newEvents = [...day.events, eventToAdd];
     newEvents.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
 
-    setIsSaving(true);
-    try {
-      await setDoc(doc(db, 'days', activeDayId), { ...day, events: newEvents });
-      setLastSaved(new Date());
-      setShowAddEvent(false);
-      setNewEvent({
-        category: 'Lesson',
-        start: '8:00 AM',
-        end: '9:00 AM',
-        title: '',
-        preview: '',
-        details: '',
-        poc: ''
-      });
-    } catch (err) {
-      console.error('Add Event error:', err);
-      alert('Failed to add event.');
-    } finally {
-      setIsSaving(false);
-    }
+    setData(prev => prev.map(d => {
+      if (d.id === activeDayId) return { ...d, events: newEvents };
+      return d;
+    }));
+
+    setHasUnsavedChanges(true);
+    setShowAddEvent(false);
+    setNewEvent({
+      category: 'Lesson',
+      start: '8:00 AM',
+      end: '9:00 AM',
+      title: '',
+      preview: '',
+      details: '',
+      poc: ''
+    });
   };
 
   const handleDeleteEvent = async (dayId: string, eventId: string) => {
-    if (!isConfigValid || !db || !window.confirm('Delete this event?')) return;
-    const day = data.find(d => d.id === dayId);
-    if (!day) return;
-
-    const newEvents = day.events.filter(e => e.id !== eventId);
-    setIsSaving(true);
-    try {
-      await setDoc(doc(db, 'days', dayId), { ...day, events: newEvents });
-      setLastSaved(new Date());
-      setSelectedEventId(null);
-    } catch (err) {
-      console.error('Delete error:', err);
-    } finally {
-      setIsSaving(false);
-    }
+    if (!isAdmin || !window.confirm('Delete this event?')) return;
+    
+    setData(prev => prev.map(day => {
+      if (day.id !== dayId) return day;
+      const newEvents = day.events.filter(e => e.id !== eventId);
+      return { ...day, events: newEvents };
+    }));
+    
+    setHasUnsavedChanges(true);
+    setSelectedEventId(null);
   };
 
+  const handleManualRefresh = async () => {
+    if (!isConfigValid || !db) return;
+    setIsRefreshing(true);
+    try {
+      const { getDocs, query } = await import('firebase/firestore');
+      const q = query(collection(db, 'days'));
+      const snapshot = await getDocs(q);
+      const daysFromDb = snapshot.docs.map(doc => doc.data() as Day);
+      
+      const merged = INITIAL_DATA.map(initDay => {
+        const fromDb = daysFromDb.find(d => d.id === initDay.id);
+        return fromDb || initDay;
+      });
+
+      setData(merged);
+      setLastSaved(new Date());
+    } catch (err) {
+      console.error('Manual Refresh Error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   const handleRestoreDefaults = async () => {
     if (!isConfigValid || !db || !window.confirm('This will RESET ALL DAYS (1, 2, and 3) to their original camp schedule. Current custom changes will be lost. Proceed?')) return;
     
     setIsSaving(true);
     try {
+      const batch = writeBatch(db);
       for (const day of INITIAL_DATA) {
-        await setDoc(doc(db, 'days', day.id), day);
+        batch.set(doc(db, 'days', day.id), day);
       }
+      await batch.commit();
+      
       setLastSaved(new Date());
       alert('Day 1, 2, and 3 restored successfully and synced to cloud!');
       setShowDaySettings(false);
@@ -567,6 +600,18 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
+              {isAdmin && hasUnsavedChanges && (
+                <motion.button 
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  onClick={handlePushToCloud}
+                  className="px-3 py-1.5 bg-emerald-500 text-black text-[10px] font-black uppercase rounded-lg hover:bg-emerald-400 transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center gap-2"
+                >
+                  <Save className="w-3 h-3" />
+                  <span className="hidden sm:inline">Save Changes</span>
+                  <span className="sm:hidden">Save</span>
+                </motion.button>
+              )}
               <button 
                 onClick={() => setShowInfo(true)}
                 className="p-1.5 bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors"
@@ -651,10 +696,11 @@ export default function App() {
         </div>
         
         {/* Sync Status Bar */}
-        {(isSyncing || isSaving || syncError || lastSaved) && (
+        {(isSyncing || isSaving || syncError || lastSaved || (isAdmin && hasUnsavedChanges)) && (
           <div className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest text-center transition-all ${
             syncError ? 'bg-red-500 text-white' : 
-            isSaving ? 'bg-amber-500 text-white' :
+            isSaving ? 'bg-amber-500 text-white animate-pulse' :
+            (isAdmin && hasUnsavedChanges) ? 'bg-amber-600 text-white' :
             lastSaved ? 'bg-emerald-500 text-white' :
             'bg-[#ff533d] text-black'
           }`}>
@@ -663,13 +709,16 @@ export default function App() {
                 <RefreshCcw className="w-3 h-3 animate-spin" />
               ) : syncError ? (
                 <AlertCircle className="w-3 h-3" />
+              ) : (isAdmin && hasUnsavedChanges) ? (
+                <Save className="w-3 h-3" />
               ) : (
                 <Check className="w-3 h-3" />
               )}
               <span>
                 {syncError ? syncError : 
-                 isSaving ? 'Saving to Cloud...' : 
+                 isSaving ? 'Publishing Changes...' : 
                  isSyncing ? 'Syncing with cloud...' : 
+                 (isAdmin && hasUnsavedChanges) ? 'Draft Mode — Click "Save Changes" to Publish' :
                  `Changes Saved to Cloud (${lastSaved?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${lastSaved?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`}
               </span>
             </div>
@@ -1006,7 +1055,7 @@ export default function App() {
                     }`}
                   >
                     {isEditing ? <Check className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                    {isEditing ? 'Save Changes' : 'Admin Edit'}
+                    {isEditing ? 'Confirm Edit' : 'Admin Edit'}
                   </button>
                   {isEditing && (
                     <button
@@ -1395,15 +1444,37 @@ export default function App() {
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-4">
           © 2026 EMPOWER CAMP — TO LIVE CHRIST, TO DIE GAIN
         </p>
-        {lastSaved && (
-          <div className="inline-flex items-center gap-2 py-2 px-4 rounded-full bg-white/5 border border-white/5 shadow-inner">
-            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500/60">Cloud Sync Active</span>
-            <div className="w-1 h-1 rounded-full bg-emerald-500/40" />
-            <span className="text-[8px] font-black uppercase tracking-widest text-white/20">
-              Last Updated: {lastSaved.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </span>
-          </div>
-        )}
+        <div className="flex flex-col items-center gap-4">
+          {(lastSaved || hasUnsavedChanges) && (
+            <div className={`inline-flex items-center gap-2 py-2 px-4 rounded-full border shadow-inner ${
+              hasUnsavedChanges ? 'bg-amber-500/10 border-amber-500/20' : 'bg-white/5 border-white/5'
+            }`}>
+              <span className={`text-[8px] font-black uppercase tracking-widest ${
+                hasUnsavedChanges ? 'text-amber-500' : 'text-emerald-500/60'
+              }`}>
+                {hasUnsavedChanges ? 'Pending Changes' : 'Cloud Sync Active'}
+              </span>
+              <div className={`w-1 h-1 rounded-full ${
+                hasUnsavedChanges ? 'bg-amber-500' : 'bg-emerald-500/40'
+              }`} />
+              <span className="text-[8px] font-black uppercase tracking-widest text-white/20">
+                {hasUnsavedChanges 
+                  ? 'Click Save to Update Cloud' 
+                  : `Last Update Found: ${lastSaved?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${lastSaved?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
+                }
+              </span>
+            </div>
+          )}
+          
+          <button
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-[#ff533d] hover:border-[#ff533d]/30 transition-all disabled:opacity-50"
+            >
+              <RefreshCcw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing Hub...' : 'Force Cloud Sync'}
+          </button>
+        </div>
       </footer>
     </div>
   );
