@@ -75,20 +75,10 @@ const provider = new GoogleAuthProvider();
 if (isConfigValid) {
   try {
     app = initializeApp(firebaseConfig);
-    // Explicitly handle (default) database ID
     db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)") 
       ? getFirestore(app, firebaseConfig.firestoreDatabaseId) 
       : getFirestore(app);
     auth = getAuth(app);
-    
-    // Enable offline persistence
-    enableIndexedDbPersistence(db).catch((err) => {
-      if (err.code === 'failed-precondition') {
-        console.warn('Multiple tabs open, persistence disabled');
-      } else if (err.code === 'unimplemented') {
-        console.warn('Browser does not support persistence');
-      }
-    });
   } catch (error: any) {
     console.error("Firebase initialization failed:", error);
   }
@@ -211,14 +201,11 @@ export default function App() {
   const [showInfo, setShowInfo] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(new Date());
   const [showLogin, setShowLogin] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'>('xl');
   const [filter, setFilter] = useState<'ALL' | 'LESSON' | 'CIRCLE'>('ALL');
   
-  const [loginCreds, setLoginCreds] = useState({ user: '', pass: '' });
-  const [loginError, setLoginError] = useState(false);
-  const [loginStep, setLoginStep] = useState(0); // 0: Password, 1: Google
   const [authStatus, setAuthStatus] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState<Omit<Event, 'id'>>({
     category: 'Lesson',
@@ -283,30 +270,19 @@ export default function App() {
   useEffect(() => {
     if (!isConfigValid || !auth) return;
 
-    const checkRedirect = async () => {
-      const { getRedirectResult } = await import('firebase/auth');
-      try {
-        setAuthStatus('Checking auth result...');
-        const result = await getRedirectResult(auth);
-        
-        if (result) {
-          if (result.user.email === 'nethisip1313@gmail.com') {
-            setIsAdmin(true);
-            setShowLogin(false);
-            setAuthStatus('Authorized successfully!');
-          } else {
-            setAuthStatus('Account not authorized.');
-            await signOut(auth);
-          }
-        } else {
-          setAuthStatus(null);
-        }
-      } catch (err: any) {
-        console.error('Redirect result error:', err);
-        setAuthStatus(err.message);
+  const checkRedirect = async () => {
+    const { getRedirectResult } = await import('firebase/auth');
+    try {
+      const result = await getRedirectResult(auth);
+      if (result && result.user.email === 'nethisip1313@gmail.com') {
+        setIsAdmin(true);
+        setShowLogin(false);
       }
-    };
-    checkRedirect();
+    } catch (err: any) {
+      console.error('Redirect result error:', err);
+    }
+  };
+  checkRedirect();
 
     return onAuthStateChanged(auth, (user) => {
       setFbUser(user);
@@ -318,21 +294,24 @@ export default function App() {
     });
   }, []);
 
-  // Connection Test
+  // Connection Test (Safe non-blocking check)
   useEffect(() => {
     if (!isConfigValid || !db) return;
 
     const testConnection = async () => {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
+        if (syncError) setSyncError(null);
       } catch (error) {
-        if(error instanceof Error && error.message.includes('the client is offline')) {
-          setSyncError("You are currently offline. Changes will sync when reconnected.");
-        }
+        // Just log, don't block UI with scary messages unless it's a fatal snapshot error
+        console.warn("Background connection check failed.");
       }
     };
+
+    const interval = setInterval(testConnection, 60000); // Check every minute
     testConnection();
-  }, []);
+    return () => clearInterval(interval);
+  }, [db, syncError]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -466,15 +445,6 @@ export default function App() {
     }
   };
 
-  const handleCheckPassword = () => {
-    if (loginCreds.user === 'empower' && loginCreds.pass === 'battlecry121') {
-      setLoginStep(1);
-      setLoginError(false);
-    } else {
-      setLoginError(true);
-    }
-  };
-
   const handleGoogleLogin = async (mode: 'popup' | 'redirect' = 'popup') => {
     if (!isConfigValid || !auth) return;
     try {
@@ -484,8 +454,6 @@ export default function App() {
         if (result.user.email === 'nethisip1313@gmail.com') {
           setIsAdmin(true);
           setShowLogin(false);
-          setLoginStep(0);
-          setLoginCreds({ user: '', pass: '' });
           setAuthStatus(null);
         } else {
           setAuthStatus('Unauthorized email.');
@@ -702,7 +670,7 @@ export default function App() {
                 {syncError ? syncError : 
                  isSaving ? 'Saving to Cloud...' : 
                  isSyncing ? 'Syncing with cloud...' : 
-                 `Changes Saved to Cloud (${lastSaved?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`}
+                 `Changes Saved to Cloud (${lastSaved?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${lastSaved?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })})`}
               </span>
             </div>
           </div>
@@ -1183,103 +1151,37 @@ export default function App() {
                 </div>
               </div>
               <h3 className="text-2xl font-black text-center uppercase tracking-tight mb-2">Admin Sign In</h3>
-              <p className="text-white/40 text-center text-xs font-bold uppercase tracking-widest mb-10">Restricted Access</p>
+              <p className="text-white/40 text-center text-[10px] font-bold uppercase tracking-widest mb-10">Use Authorized Account</p>
               
-              <div className="space-y-4">
-                {loginStep === 0 ? (
-                  <>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                      <input
-                        type="text"
-                        value={loginCreds.user}
-                        onChange={(e) => setLoginCreds(prev => ({ ...prev, user: e.target.value }))}
-                        placeholder="USERNAME"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[#ff533d]/50 transition-all"
-                      />
-                    </div>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                      <input
-                        type="password"
-                        value={loginCreds.pass}
-                        onKeyDown={(e) => e.key === 'Enter' && handleCheckPassword()}
-                        onChange={(e) => setLoginCreds(prev => ({ ...prev, pass: e.target.value }))}
-                        placeholder="PASSWORD"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-[#ff533d]/50 transition-all"
-                      />
-                    </div>
-                    {loginError && <p className="text-[#ff533d] text-[10px] font-black uppercase text-center animate-shake">Incorrect Credentials</p>}
-                    
-                    <button
-                      onClick={handleCheckPassword}
-                      className="w-full bg-[#ff533d] text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all mt-6"
-                    >
-                      Next Step
-                    </button>
-                  </>
-                ) : (
-                  <div className="space-y-6 text-center">
-                    <div className="bg-[#ff533d]/10 border border-[#ff533d]/20 rounded-2xl p-6">
-                      <p className="text-xs font-black uppercase tracking-widest text-[#ff533d] mb-4">Credentials Verified!</p>
-                      <p className="text-[10px] text-white/60 font-medium uppercase tracking-[0.1em] mb-0">
-                        Now sign in with Google to enable cloud sync.
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => handleGoogleLogin('popup')}
-                        className="w-full bg-white text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-stone-200 transition-all font-mono"
-                      >
-                        <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" referrerPolicy="no-referrer" />
-                        Option 1: POPUP
-                      </button>
-                      
-                      <button
-                        onClick={() => handleGoogleLogin('redirect')}
-                        className="w-full bg-[#ff533d] text-black py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all font-mono"
-                      >
-                         <img src="https://www.google.com/favicon.ico" className="w-4 h-4 grayscale brightness-0" alt="Google" referrerPolicy="no-referrer" />
-                        Option 2: REDIRECT
-                      </button>
-
-                      <div className="py-2">
-                        {authStatus ? (
-                          <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#ff533d] animate-pulse">
-                            <RefreshCcw className="w-3 h-3 animate-spin" />
-                            {authStatus}
-                          </div>
-                        ) : (
-                          <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest leading-relaxed">
-                            Use Option 2 if Option 1 does not open. <br/>
-                            This is common on Chrome and Mobile.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-8 pt-8 border-t border-white/5">
-                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mb-4">Domain Help</p>
-                      <div className="bg-black/40 rounded-xl p-3 border border-white/5 font-mono text-[9px] text-white/30 truncate select-all">
-                        {window.location.hostname}
-                      </div>
-                      <p className="text-[8px] text-white/20 uppercase tracking-widest mt-2 leading-relaxed">
-                        Add this domain to Firebase Console <br/>Authentication &gt; Settings &gt; Authorized Domains
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
+              <div className="space-y-6">
                 <button
-                  onClick={() => {
-                    setShowLogin(false);
-                    setLoginStep(0);
-                  }}
-                  className="w-full bg-transparent text-white/40 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:text-white transition-all"
+                  onClick={() => handleGoogleLogin('popup')}
+                  className="w-full bg-[#ff533d] text-white py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                  Cancel
+                  <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" referrerPolicy="no-referrer" />
+                  Sign in with Google
                 </button>
+
+                <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest text-center leading-relaxed">
+                  Authorized users only. Access will be granted <br/> immediately upon verification.
+                </p>
+
+                <div className="pt-6 border-t border-white/5 space-y-4">
+                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest text-center">Trouble signing in?</p>
+                  <button
+                    onClick={() => handleGoogleLogin('redirect')}
+                    className="w-full bg-white/5 border border-white/10 text-white py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                  >
+                    Try Redirect Method
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowLogin(false)}
+                    className="w-full bg-transparent text-white/20 py-2 text-[9px] font-black uppercase tracking-widest hover:text-white transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -1489,10 +1391,19 @@ export default function App() {
 
       {/* Footer Decoration */}
       <footer className="max-w-7xl mx-auto px-4 py-20 text-center border-t border-white/5 mt-20">
-        <div className="mb-8 opacity-20">⚔</div>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
+        <div className="mb-4 opacity-20">⚔</div>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-4">
           © 2026 EMPOWER CAMP — TO LIVE CHRIST, TO DIE GAIN
         </p>
+        {lastSaved && (
+          <div className="inline-flex items-center gap-2 py-2 px-4 rounded-full bg-white/5 border border-white/5 shadow-inner">
+            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500/60">Cloud Sync Active</span>
+            <div className="w-1 h-1 rounded-full bg-emerald-500/40" />
+            <span className="text-[8px] font-black uppercase tracking-widest text-white/20">
+              Last Updated: {lastSaved.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          </div>
+        )}
       </footer>
     </div>
   );
