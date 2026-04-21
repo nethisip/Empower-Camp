@@ -35,6 +35,7 @@ import {
 
 // Firebase
 import { initializeApp } from 'firebase/app';
+import { getAnalytics } from 'firebase/analytics';
 import { 
   getFirestore, 
   initializeFirestore,
@@ -47,23 +48,15 @@ import {
   getDocFromServer, 
   enableIndexedDbPersistence 
 } from 'firebase/firestore';
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  onAuthStateChanged, 
-  signOut,
-  User as FirebaseUser 
-} from 'firebase/auth';
-
-// Firebase Configuration (Directly Exposed for reliability as requested)
+// Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDfUlYV6JyoIEYPCOx1xAb9-rmze49X3ZI",
-  authDomain: "gen-lang-client-0877601885.firebaseapp.com",
-  projectId: "gen-lang-client-0877601885",
-  storageBucket: "gen-lang-client-0877601885.firebasestorage.app",
-  messagingSenderId: "715506466373",
-  appId: "1:715506466373:web:8af61c9ae081a6804aed2c",
+  apiKey: "AIzaSyAI816B7DEd3LNteWd-RRsD4NdU9yijgj4",
+  authDomain: "empower-battlecry.firebaseapp.com",
+  projectId: "empower-battlecry",
+  storageBucket: "empower-battlecry.firebasestorage.app",
+  messagingSenderId: "1074104413888",
+  appId: "1:1074104413888:web:74c5c0b75b826f54a90725",
+  measurementId: "G-DCJET1850M",
   firestoreDatabaseId: "(default)"
 };
 
@@ -72,18 +65,18 @@ const isConfigValid = !!firebaseConfig.apiKey && firebaseConfig.apiKey !== "";
 // Initialize Firebase safely
 let app: any = null;
 let db: any = null;
-let auth: any = null;
-const provider = new GoogleAuthProvider();
 
 if (isConfigValid) {
   try {
     app = initializeApp(firebaseConfig);
+    if (typeof window !== 'undefined') {
+      getAnalytics(app);
+    }
     // Force Long Polling for maximum reliability in environments where WebSockets might be throttled or blocked
     db = initializeFirestore(app, {
       experimentalForceLongPolling: true,
       experimentalAutoDetectLongPolling: false // Force it to be sure
     });
-    auth = getAuth(app);
   } catch (error: any) {
     console.error("Firebase initialization failed:", error);
   }
@@ -239,7 +232,7 @@ const INITIAL_DATA: Day[] = [
         verse: 'Philippians 1:27–28',
         goal: 'Prepare campers for the pressures they will face after camp. Encourage them to stand firm in faith and support one another. The focus is staying faithful even when challenges come.'
       },
-      { id: 'd3e8', category: 'Counselling', start: '6:30 AM', end: '7:00 AM', title: 'FINAL Counselling Session', preview: 'Sharing of social contacts.', details: 'Final ministry moment for counselling and intentional sharing of social contacts to maintain community after camp.', poc: 'Pastor Joseph and Pastor Paul' },
+      { id: 'd3e8', category: 'Devotion', start: '6:30 AM', end: '7:00 AM', title: 'Personal Devotion Time / Quiet Time', preview: 'Personal prayer and reflection.', details: 'A dedicated time for individual prayer, Bible reading, and spiritual reflection to start the final day of camp.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd3e2', category: 'Meal', start: '7:00 AM', end: '8:00 AM', title: 'Breakfast', preview: 'Last camp breakfast.', details: 'Final shared meal and community reflection.', poc: 'ER' },
       { id: 'd3e3', category: 'Pack-Up', start: '8:00 AM', end: '9:00 AM', title: 'Pack-Up & Cleanup', preview: 'Balik Phone.', details: 'Clearing rooms and returning camp equipment. Mobile phones are returned to campers.', poc: 'Pastor Amoz and Jeem' },
       { 
@@ -281,7 +274,6 @@ const timeToMinutes = (timeStr: string) => {
 
 export default function App() {
   const [data, setData] = useState<Day[]>(INITIAL_DATA);
-  const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
   const [isSyncing, setIsSyncing] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
   
@@ -293,16 +285,18 @@ export default function App() {
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const hasUnsavedChangesRef = useRef(false);
-  const [showLogin, setShowLogin] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'>('xl');
   const [filter, setFilter] = useState<'ALL' | 'LESSON' | 'CIRCLE'>('ALL');
   
-  const [authStatus, setAuthStatus] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState<Omit<Event, 'id'>>({
     category: 'Lesson',
     start: '8:00 AM',
@@ -397,35 +391,6 @@ export default function App() {
     };
   }, [db, isAdmin]); // REMOVED hasUnsavedChanges from dependencies to prevent re-subscribe clobber
 
-  // Auth State
-  useEffect(() => {
-    if (!isConfigValid || !auth) return;
-
-  const checkRedirect = async () => {
-    const { getRedirectResult } = await import('firebase/auth');
-    try {
-      const result = await getRedirectResult(auth);
-      if (result && result.user.email === 'nethisip1313@gmail.com') {
-        setIsAdmin(true);
-        setShowLogin(false);
-      }
-    } catch (err: any) {
-      console.error('Redirect result error:', err);
-    }
-  };
-  checkRedirect();
-
-    return onAuthStateChanged(auth, (user) => {
-      setFbUser(user);
-      if (user && user.email === 'nethisip1313@gmail.com') {
-        setIsAdmin(true);
-        if (showLogin) setShowLogin(false);
-      } else {
-        setIsAdmin(false);
-      }
-    });
-  }, []);
-
   // Connection Test (Safe non-blocking check)
   useEffect(() => {
     if (!isConfigValid || !db) return;
@@ -490,8 +455,21 @@ export default function App() {
     setHasUnsavedChanges(true);
   };
 
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username === 'admin' && password === 'battlecry121') {
+      setIsAdmin(true);
+      setShowLogin(false);
+      setLoginError(false);
+      setUsername('');
+      setPassword('');
+    } else {
+      setLoginError(true);
+    }
+  };
+
   const handlePushToCloud = async () => {
-    if (!isConfigValid || !db || !isAdmin) return;
+    if (!db || !isAdmin) return;
     
     setIsSaving(true);
     try {
@@ -551,8 +529,8 @@ export default function App() {
   };
 
   const handleDeleteEvent = async (dayId: string, eventId: string) => {
-    if (!isAdmin || !window.confirm('Delete this event?')) return;
-    
+    if (!isAdmin) return;
+    if (!window.confirm('Delete this event?')) return;
     setData(prev => prev.map(day => {
       if (day.id !== dayId) return day;
       const newEvents = day.events.filter(e => e.id !== eventId);
@@ -564,7 +542,6 @@ export default function App() {
   };
 
   const handleManualRefresh = async () => {
-    if (!isConfigValid || !db) return;
     setIsRefreshing(true);
     try {
       const { getDocs, query } = await import('firebase/firestore');
@@ -586,7 +563,8 @@ export default function App() {
     }
   };
   const handleRestoreDefaults = async () => {
-    if (!isConfigValid || !db || !window.confirm('This will RESET ALL DAYS (1, 2, and 3) to their original camp schedule. Current custom changes will be lost. Proceed?')) return;
+    if (!isAdmin) return;
+    if (!window.confirm('This will RESET ALL DAYS (1, 2, and 3) to their original camp schedule. Current custom changes will be lost. Proceed?')) return;
     
     setIsSaving(true);
     try {
@@ -605,49 +583,6 @@ export default function App() {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleGoogleLogin = async (mode: 'popup' | 'redirect' = 'popup') => {
-    if (!isConfigValid || !auth) return;
-    try {
-      setAuthStatus(`Opening Google ${mode}...`);
-      if (mode === 'popup') {
-        const result = await signInWithPopup(auth, provider);
-        if (result.user.email === 'nethisip1313@gmail.com') {
-          setIsAdmin(true);
-          setShowLogin(false);
-          setAuthStatus(null);
-        } else {
-          setAuthStatus('Unauthorized email.');
-          alert('Access denied: Please sign in with nethisip1313@gmail.com.');
-          await signOut(auth);
-        }
-      } else {
-        const { signInWithRedirect } = await import('firebase/auth');
-        setAuthStatus('Redirecting to Google. Please wait...');
-        // Save current path if needed, though here it's root
-        await signInWithRedirect(auth, provider);
-      }
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setAuthStatus(err.message);
-      if (mode === 'popup' && err.code !== 'auth/cancelled-by-user') {
-        alert('Popup blocked or failed. Please use the "Sign in (Redirect)" button or allow popups in your browser.');
-      }
-    }
-  };
-
-  const handleSignOut = async () => {
-    if (!isConfigValid || !auth) {
-      setIsAdmin(false);
-      return;
-    }
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error("Sign out error", err);
-    }
-    setIsAdmin(false);
   };
 
   const textSizeClass = {
@@ -748,16 +683,8 @@ export default function App() {
               >
                 <Info className="w-4 h-4" />
               </button>
-              {isAdmin && (
-                <button 
-                  onClick={() => setShowDaySettings(true)}
-                  className="p-1.5 bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors"
-                >
-                  <Calendar className="w-4 h-4" />
-                </button>
-              )}
               <button
-                onClick={() => isAdmin ? handleSignOut() : setShowLogin(true)}
+                onClick={() => isAdmin ? setIsAdmin(false) : setShowLogin(true)}
                 className={`p-1.5 rounded-lg border transition-all ${
                   isAdmin 
                     ? 'bg-[#ff533d]/10 border-[#ff533d]/40 text-[#ff533d]' 
@@ -769,10 +696,9 @@ export default function App() {
             </div>
           </div>
           
-          {/* Unified Navigation Hub */}
-          <div className="p-2 space-y-2">
-            {/* Row 1: Day Selectors */}
-            <div className="grid grid-cols-3 gap-1.5">
+          {/* Unified Navigation Hub - One Row Layout */}
+          <div className="p-2 overflow-x-auto no-scrollbar">
+            <div className="flex gap-1.5 min-w-max pb-1">
               {['day1', 'day2', 'day3'].map((id) => {
                 const day = data.find(d => d.id === id);
                 const dayNum = id.replace('day', '');
@@ -785,41 +711,40 @@ export default function App() {
                       setActiveDayId(id);
                       setFilter('ALL');
                     }}
-                    className={`py-4 rounded-2xl text-[10px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[65px] ${
+                    className={`px-4 py-3 rounded-2xl text-[10px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-w-[80px] h-[65px] ${
                       activeDayId === id && filter === 'ALL'
-                        ? 'bg-[#ff533d] border-[#ff533d] text-black shadow-lg scale-[1.02]' 
+                        ? 'bg-[#ff533d] border-[#ff533d] text-black shadow-lg' 
                         : 'bg-white/5 border-white/5 text-white/30 hover:border-white/10'
                     }`}
                   >
-                    <span className="block mb-0.5 opacity-60 truncate w-full px-1 text-[8px] tracking-tight">{day ? day.label : `Day ${dayNum}`}</span>
-                    <span className="font-black text-[14px] leading-none">{dateLabel}</span>
+                    <span className="block mb-0.5 opacity-60 text-[7px] tracking-tight">{day ? day.label : `Day ${dayNum}`}</span>
+                    <span className="font-black text-[12px] leading-none">{dateLabel}</span>
                   </button>
                 );
               })}
-            </div>
 
-            {/* Row 2: Basic Filters */}
-            <div className="grid grid-cols-2 gap-1.5">
+              <div className="w-[1px] bg-white/10 self-stretch mx-1" />
+
               <button
                 onClick={() => setFilter('LESSON')}
-                className={`py-3 rounded-2xl text-[9px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[55px] ${
+                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase text-center transition-all border flex items-center justify-center min-w-[100px] h-[65px] ${
                   filter === 'LESSON'
-                    ? 'bg-red-500 border-red-500 text-white shadow-lg scale-[1.02]' 
+                    ? 'bg-red-500 border-red-500 text-white shadow-lg' 
                     : 'bg-white/5 border-white/5 text-red-500/50 hover:border-red-500/20'
                 }`}
               >
-                <span className="text-[11px] font-black leading-none tracking-widest">Camp Lessons</span>
+                Lessons
               </button>
 
               <button
                 onClick={() => setFilter('CIRCLE')}
-                className={`py-3 rounded-2xl text-[9px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-h-[55px] ${
+                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase text-center transition-all border flex items-center justify-center min-w-[110px] h-[65px] ${
                   filter === 'CIRCLE'
-                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg scale-[1.02]' 
+                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' 
                     : 'bg-white/5 border-white/5 text-emerald-500/50 hover:border-emerald-500/20'
                 }`}
               >
-                <span className="text-[11px] font-black leading-none tracking-widest">Empower Circles</span>
+                Circles
               </button>
             </div>
           </div>
@@ -1256,7 +1181,7 @@ export default function App() {
                         : 'bg-[#ff533d] text-white border-[#ff533d]'
                     }`}
                   >
-                    {isEditing ? <Check className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                    {isEditing ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                     {isEditing ? 'Confirm Edit' : 'Admin Edit'}
                   </button>
                   {isEditing && (
@@ -1397,46 +1322,58 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-md bg-[#18181c] border border-white/10 rounded-[2.5rem] p-8 sm:p-10 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar"
+              className="relative w-full max-w-md bg-[#18181c] border border-white/10 rounded-[2.5rem] p-8 sm:p-10 shadow-2xl"
             >
               <div className="flex justify-center mb-8">
                 <div className="w-16 h-16 rounded-[2rem] bg-gradient-to-br from-[#ff533d] to-[#ff6b57] flex items-center justify-center shadow-[0_0_30px_rgba(255,83,61,0.4)]">
                    <Lock className="w-8 h-8 text-black" />
                 </div>
               </div>
-              <h3 className="text-2xl font-black text-center uppercase tracking-tight mb-2">Admin Sign In</h3>
-              <p className="text-white/40 text-center text-[10px] font-bold uppercase tracking-widest mb-10">Use Authorized Account</p>
+              <h3 className="text-2xl font-black text-center uppercase tracking-tight mb-2">Admin Login</h3>
+              <p className="text-white/40 text-center text-[10px] font-bold uppercase tracking-widest mb-10">Authorized Access Only</p>
               
-              <div className="space-y-6">
-                <button
-                  onClick={() => handleGoogleLogin('popup')}
-                  className="w-full bg-[#ff533d] text-white py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-[0_15px_30px_-5px_rgba(255,83,61,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
-                >
-                  <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" referrerPolicy="no-referrer" />
-                  Sign in with Google
-                </button>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-stone-500 mb-2 block">Username</label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold focus:border-[#ff533d]/50 transition-all outline-none"
+                    placeholder="Enter username"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-stone-500 mb-2 block">Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold focus:border-[#ff533d]/50 transition-all outline-none"
+                    placeholder="Enter password"
+                  />
+                </div>
 
-                <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest text-center leading-relaxed">
-                  Authorized users only. Access will be granted <br/> immediately upon verification.
-                </p>
+                {loginError && (
+                  <p className="text-red-500 text-[10px] font-black uppercase text-center mt-2">Invalid Credentials</p>
+                )}
 
-                <div className="pt-6 border-t border-white/5 space-y-4">
-                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest text-center">Trouble signing in?</p>
+                <div className="pt-4 space-y-3">
                   <button
-                    onClick={() => handleGoogleLogin('redirect')}
-                    className="w-full bg-white/5 border border-white/10 text-white py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                    type="submit"
+                    className="w-full bg-[#ff533d] text-white py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all"
                   >
-                    Try Redirect Method
+                    Authenticate
                   </button>
-                  
                   <button
+                    type="button"
                     onClick={() => setShowLogin(false)}
                     className="w-full bg-transparent text-white/20 py-2 text-[9px] font-black uppercase tracking-widest hover:text-white transition-all"
                   >
                     Cancel
                   </button>
                 </div>
-              </div>
+              </form>
             </motion.div>
           </div>
         )}
