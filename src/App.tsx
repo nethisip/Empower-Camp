@@ -111,7 +111,7 @@ const INITIAL_DATA: Day[] = [
     id: 'day1',
     label: 'Day 1',
     date: 'April 29',
-    theme: 'MY STORY, HIS GLORY',
+    theme: 'April 29 - 1st Day',
     events: [
       { id: 'd1e1', category: 'Arrival', start: '8:00 AM', end: '9:00 AM', title: 'Registration & Check-In', preview: 'Campers arrive, register, receive kits, and get room assignments.', details: 'Campers arrive, register, receive kits, and get room assignments. Each camper will be greeted by the welcome team and guided to their designated quarters.', poc: 'Joy and Princess' },
       { id: 'd1e2', category: 'Orientation', start: '9:00 AM', end: '10:30 AM', title: 'Camp Orientation', preview: 'Introduction to camp schedule, rules, and the Battle Royale.', details: 'Introduction to camp schedule, house rules, and safety protocols. Announcement of the Battle Royale competition details, team names, theme song, and chants.', poc: 'Pastor Amoz and Jeem' },
@@ -586,21 +586,21 @@ export default function App() {
   };
 
   const textSizeClass = {
-    sm: 'text-sm',
-    base: 'text-base',
-    lg: 'text-lg',
-    xl: 'text-xl',
-    '2xl': 'text-2xl',
-    '3xl': 'text-3xl'
+    sm: 'text-xs sm:text-sm',
+    base: 'text-sm sm:text-base',
+    lg: 'text-base sm:text-lg',
+    xl: 'text-lg sm:text-xl',
+    '2xl': 'text-xl sm:text-2xl',
+    '3xl': 'text-2xl sm:text-3xl'
   }[fontSize];
 
   const headingSizeClass = {
-    sm: 'text-xl',
-    base: 'text-2xl',
-    lg: 'text-3xl',
-    xl: 'text-4xl',
-    '2xl': 'text-5xl',
-    '3xl': 'text-6xl'
+    sm: 'text-lg sm:text-xl',
+    base: 'text-xl sm:text-2xl',
+    lg: 'text-2xl sm:text-3xl',
+    xl: 'text-3xl sm:text-4xl md:text-5xl lg:text-7xl',
+    '2xl': 'text-4xl sm:text-5xl md:text-7xl lg:text-8xl',
+    '3xl': 'text-5xl sm:text-7xl md:text-8xl lg:text-9xl'
   }[fontSize];
 
   const getCategoryStyles = (category: string) => {
@@ -696,13 +696,14 @@ export default function App() {
             </div>
           </div>
           
-          {/* Unified Navigation Hub - One Row Layout */}
-          <div className="p-2 overflow-x-auto no-scrollbar">
-            <div className="flex gap-1.5 min-w-max pb-1">
+          {/* Unified Navigation Hub - Cohesive 5-item Layout */}
+          <div className="w-[95%] sm:w-[85%] mx-auto p-2">
+            <div className="grid grid-cols-5 bg-white/5 backdrop-blur-md rounded-2xl p-1 gap-1 border border-white/10">
               {['day1', 'day2', 'day3'].map((id) => {
                 const day = data.find(d => d.id === id);
                 const dayNum = id.replace('day', '');
                 const dateLabel = day ? day.date : (id === 'day1' ? 'Apr 29' : id === 'day2' ? 'Apr 30' : 'May 1');
+                const isActive = activeDayId === id && filter === 'ALL';
                 
                 return (
                   <button
@@ -711,39 +712,41 @@ export default function App() {
                       setActiveDayId(id);
                       setFilter('ALL');
                     }}
-                    className={`px-4 py-3 rounded-2xl text-[10px] font-black uppercase text-center transition-all border leading-tight flex flex-col items-center justify-center min-w-[80px] h-[65px] ${
-                      activeDayId === id && filter === 'ALL'
-                        ? 'bg-[#ff533d] border-[#ff533d] text-black shadow-lg' 
-                        : 'bg-white/5 border-white/5 text-white/30 hover:border-white/10'
+                    className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all ${
+                      isActive
+                        ? 'bg-[#ff533d] text-black shadow-lg shadow-[#ff533d]/20' 
+                        : 'text-white/40 hover:text-white/60 hover:bg-white/5'
                     }`}
                   >
-                    <span className="block mb-0.5 opacity-60 text-[7px] tracking-tight">{day ? day.label : `Day ${dayNum}`}</span>
-                    <span className="font-black text-[12px] leading-none">{dateLabel}</span>
+                    <span className={`text-[6px] sm:text-[8px] font-black uppercase tracking-tighter sm:tracking-widest ${isActive ? 'text-black/60' : 'text-white/30'}`}>
+                      Day {dayNum}
+                    </span>
+                    <span className="font-black text-[9px] sm:text-xs leading-none whitespace-nowrap">{dateLabel}</span>
                   </button>
                 );
               })}
 
-              <div className="w-[1px] bg-white/10 self-stretch mx-1" />
-
               <button
                 onClick={() => setFilter('LESSON')}
-                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase text-center transition-all border flex items-center justify-center min-w-[100px] h-[65px] ${
+                className={`py-2 px-0.5 rounded-xl text-[8px] sm:text-[10px] font-black uppercase transition-all flex flex-col items-center justify-center ${
                   filter === 'LESSON'
-                    ? 'bg-red-500 border-red-500 text-white shadow-lg' 
-                    : 'bg-white/5 border-white/5 text-red-500/50 hover:border-red-500/20'
+                    ? 'bg-red-500 text-white shadow-lg' 
+                    : 'text-red-500/50 hover:bg-red-500/10'
                 }`}
               >
+                <span className="hidden sm:block text-[8px] opacity-60">View</span>
                 Lessons
               </button>
 
               <button
                 onClick={() => setFilter('CIRCLE')}
-                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase text-center transition-all border flex items-center justify-center min-w-[110px] h-[65px] ${
+                className={`py-2 px-0.5 rounded-xl text-[8px] sm:text-[10px] font-black uppercase transition-all flex flex-col items-center justify-center ${
                   filter === 'CIRCLE'
-                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' 
-                    : 'bg-white/5 border-white/5 text-emerald-500/50 hover:border-emerald-500/20'
+                    ? 'bg-emerald-500 text-white shadow-lg' 
+                    : 'text-emerald-500/50 hover:bg-emerald-500/10'
                 }`}
               >
+                <span className="hidden sm:block text-[8px] opacity-60">Group</span>
                 Circles
               </button>
             </div>
@@ -751,7 +754,7 @@ export default function App() {
         </div>
         
         {/* Sync Status Bar */}
-        {(isSyncing || isSaving || syncError || lastSaved || (isAdmin && hasUnsavedChanges)) && (
+        {!!(isSyncing || isSaving || syncError || lastSaved || (isAdmin && hasUnsavedChanges)) && (
           <div className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest text-center transition-all ${
             syncError ? 'bg-red-500 text-white' : 
             isSaving ? 'bg-amber-500 text-white animate-pulse' :
@@ -781,7 +784,7 @@ export default function App() {
         )}
       </nav>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-12">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-24">
         {/* Hero Section */}
         <header className="mb-12 text-center">
           <div className="flex justify-center mb-6">
@@ -812,9 +815,9 @@ export default function App() {
           <motion.h2 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`font-black tracking-tight leading-[0.85] text-[#ff533d] mb-4 text-center ${headingSizeClass} uppercase drop-shadow-2xl`}
+            className={`font-black tracking-tight leading-[0.85] text-[#ff533d] mb-6 text-center ${headingSizeClass} uppercase drop-shadow-2xl`}
           >
-            Battle <br className="sm:hidden" /> Cry
+            Battle <br /> Cry
           </motion.h2>
           
           <motion.p 
@@ -831,9 +834,9 @@ export default function App() {
         <section className="space-y-6">
           <div className="pt-4 border-b border-white/5 pb-6">
             <div className="flex flex-col gap-1">
-              <h3 className="text-2xl font-black tracking-tight uppercase flex items-center gap-3">
-                {filter === 'ALL' ? `${activeDay.label} Theme` : filter === 'LESSON' ? 'All Camp Lessons' : 'All Empower Circles'}
-                <span className="text-sm text-[#ff533d] px-2 py-0.5 rounded-full bg-[#ff533d]/10">
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight uppercase flex flex-wrap items-center gap-2 sm:gap-3">
+                {filter === 'ALL' ? `${activeDay.label} Information` : filter === 'LESSON' ? 'All Camp Lessons' : 'All Empower Circles'}
+                <span className="text-[10px] sm:text-xs text-[#ff533d] px-3 py-1 rounded-full bg-[#ff533d]/10 border border-[#ff533d]/20">
                   { (filter === 'ALL' 
                     ? activeDay.events 
                     : data.flatMap(d => d.events.filter(e => {
@@ -878,10 +881,10 @@ export default function App() {
                     }}
                     className={`group cursor-pointer border rounded-3xl p-5 sm:p-7 transition-all duration-200 ${getEventBoxStyles(event.category)}`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                       {/* Time Box */}
-                      <div className="sm:w-32 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-white/10 pb-4 sm:pb-0 sm:pr-6">
-                        <div className={`text-xl font-black ${
+                      <div className="sm:w-32 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-white/10 pb-3 sm:pb-0 sm:pr-6 shrink-0">
+                        <div className={`text-lg sm:text-xl font-black ${
                           event.category.toLowerCase().includes('lesson') ? 'text-red-400' :
                           (event.category.toLowerCase().includes('meal') || event.category.toLowerCase().includes('lunch') || event.category.toLowerCase().includes('dinner') || event.category.toLowerCase().includes('breakfast')) ? 'text-yellow-500' :
                           event.category.toLowerCase().includes('circle') ? 'text-emerald-400' :
@@ -900,7 +903,7 @@ export default function App() {
                             {event.category}
                           </span>
                         </div>
-                        <h4 className={`text-lg font-black tracking-tight mb-2 transition-colors truncate ${
+                        <h4 className={`text-base sm:text-lg font-black tracking-tight mb-2 transition-colors break-words sm:line-clamp-2 ${
                           event.category.toLowerCase().includes('lesson') ? 'text-red-400 group-hover:text-red-300' :
                           (event.category.toLowerCase().includes('meal') || event.category.toLowerCase().includes('lunch') || event.category.toLowerCase().includes('dinner') || event.category.toLowerCase().includes('breakfast')) ? 'text-yellow-500 group-hover:text-yellow-400' :
                           event.category.toLowerCase().includes('circle') ? 'text-emerald-400 group-hover:text-emerald-300' :
