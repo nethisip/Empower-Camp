@@ -133,7 +133,7 @@ const INITIAL_DATA: Day[] = [
       { id: 'd1e10', category: 'Worship', start: '7:00 PM', end: '8:30 PM', title: 'Worship Night', preview: 'High-energy praise and worship.', details: 'A vibrant concert-style worship experience led by the Empower Worship Team, focusing on exuberant praise.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd1e11', category: 'Lesson', start: '8:30 PM', end: '9:30 PM', title: 'Lesson 2 — Pastor Jeral Sardiña', preview: 'The Battle Plan for Your Body', details: 'Speaker: Pastor Jeral Sardiña Topic: The Battle Plan for Your Body Theme line: My Story, His Glory. Discussing holiness and the physical vessel.', poc: 'Pastor Jeral Sardiña' },
       { id: 'd1e12', category: 'Circle', start: '9:30 PM', end: '10:00 PM', title: 'EMPOWER CIRCLE 2', preview: 'Topic: PATAY KUNG PATAY', details: 'Deeper dive into self-denial and the cost of discipleship following the evening session.', poc: 'Pastor Joseph and Pastor Paul' },
-      { id: 'd1e13', category: 'Lights Off', start: '10:00 PM', end: '—', title: 'Lights Off', preview: 'Rest for the next day.', details: 'Curfew for all campers to ensure adequate rest for Day 2 activities.', poc: 'Pastor Amoz and Jeem' }
+      { id: 'd1e13', category: 'Lights Off', start: '10:00 PM', end: '10:30 PM', title: 'Lights Off', preview: 'Rest for the next day.', details: 'Curfew for all campers to ensure adequate rest for Day 2 activities.', poc: 'Pastor Amoz and Jeem' }
     ]
   },
   {
@@ -149,14 +149,16 @@ const INITIAL_DATA: Day[] = [
       { id: 'd2e5', category: 'Circle', start: '9:00 AM', end: '9:30 AM', title: 'EMPOWER CIRCLE 3', preview: 'Topic: Walang Atrasan', details: 'Group commitment session on perseverance and "No Retreat" mindset.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd2e6', category: 'Briefing', start: '9:30 AM', end: '10:00 AM', title: 'The Great 8 Explanation', preview: 'Instructions for the challenge.', details: 'Detailed instructions and safety rules for the main outdoor team competition.', poc: 'Beth' },
       { id: 'd2e7', category: 'Challenge', start: '10:00 AM', end: '11:30 AM', title: 'The Great 8 Challenges', preview: 'Outdoor team challenges.', details: 'A circuit of 8 demanding tasks that test strength, ingenuity, and teamwork. The heart of the Battle Royale.', poc: 'Beth' },
+      { id: 'd2e16', category: 'Clean-up', start: '11:30 AM', end: '12:00 PM', title: 'Clean up Time', preview: 'Preparing for Lunch.', details: 'Freshen up and clean up after the intense outdoor challenges to prepare for lunch.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd2e8', category: 'Meal', start: '12:00 PM', end: '1:00 PM', title: 'Lunch', preview: 'Lunch break.', details: 'Recovery meal after the morning challenges.', poc: 'ER' },
       { id: 'd2e9', category: 'Team', start: '1:30 PM', end: '3:30 PM', title: 'Team Huddle', preview: 'Talent presentation prep.', details: 'Final preparation and rehearsal for the talent night presentations.', poc: 'Beth' },
       { id: 'd2e10', category: 'Games', start: '3:30 PM', end: '4:30 PM', title: 'Battle Plan', preview: 'Mini-games session.', details: 'Targeted competitive games to rack up additional points for the leaderboard.', poc: 'Beth' },
       { id: 'd2e11', category: 'Battle Royale', start: '4:30 PM', end: '5:30 PM', title: 'The Battle Royale', preview: 'The Last Battle.', details: 'The grand finale of the physical competitions. All teams converge for a final high-stakes showdown.', poc: 'Beth' },
+      { id: 'd2e17', category: 'Circle', start: '5:30 PM', end: '6:00 PM', title: 'EMPOWER CIRCLE 4', preview: 'Small group processing.', details: 'Post-battle royale processing and team reflection before the evening activities.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd2e12', category: 'Presentation', start: '7:00 PM', end: '8:30 PM', title: 'Team Presentation', preview: 'Sprints, songs, or performances.', details: 'Creative expressions of faith and the camp theme. Maximum 5 minutes per team. Judged for creativity and message.', poc: 'Beth' },
       { id: 'd2e13', category: 'Lesson', start: '8:30 PM', end: '9:30 PM', title: 'Lesson 5 — Ptr. Neth Isip', preview: 'Walking Worthy', details: 'Speaker: Ptr. Neth Isip Topic: Walking Worthy in the Battle. Theme line: My Hardships, His Worship.', poc: 'Ptr. Neth Isip' },
       { id: 'd2e14', category: 'Campfire', start: '9:30 PM', end: '11:00 PM', title: 'Campfire', preview: 'What Are You Burning?', details: 'Facilitators: Ton / Theo / Lester / Venzen. Theme: What Are You Burning Tonight? A symbolic act of surrendering burdens.', poc: 'Pastor Amoz and Jeem' },
-      { id: 'd2e15', category: 'Lights Off', start: '11:00 PM', end: '—', title: 'Lights Off', preview: 'Final night rest.', details: 'Rest for the concluding day of the camp.', poc: 'Pastor Amoz and Jeem' }
+      { id: 'd2e15', category: 'Lights Off', start: '11:00 PM', end: '11:30 PM', title: 'Lights Off', preview: 'Final night rest.', details: 'Rest for the concluding day of the camp.', poc: 'Pastor Amoz and Jeem' }
     ]
   },
   {
@@ -166,12 +168,15 @@ const INITIAL_DATA: Day[] = [
     theme: 'MY BODY, HIS CHOICE',
     events: [
       { id: 'd3e1', category: 'Lesson', start: '6:00 AM', end: '6:30 AM', title: 'Lesson 6 — Pastor Philip', preview: 'Standing Firm', details: 'Speaker: Pastor Philip Topic: Standing Firm in the Battle. Concluding spiritual instructions.', poc: 'Pastor Philip' },
+      { id: 'd3e8', category: 'Counselling', start: '6:30 AM', end: '7:00 AM', title: 'FINAL Counselling Session', preview: 'Sharing of social contacts.', details: 'Final ministry moment for counselling and intentional sharing of social contacts to maintain community after camp.', poc: 'Pastor Joseph and Pastor Paul' },
       { id: 'd3e2', category: 'Meal', start: '7:00 AM', end: '8:00 AM', title: 'Breakfast', preview: 'Last camp breakfast.', details: 'Final shared meal and community reflection.', poc: 'ER' },
       { id: 'd3e3', category: 'Pack-Up', start: '8:00 AM', end: '9:00 AM', title: 'Pack-Up & Cleanup', preview: 'Balik Phone.', details: 'Clearing rooms and returning camp equipment. Mobile phones are returned to campers.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd3e4', category: 'Lesson', start: '9:00 AM', end: '10:00 AM', title: 'Lesson 7 — Ptr. YuSef Doca', preview: 'Displaying Christ', details: 'Speaker: Ptr. YuSef Doca Topic: Displaying Christ in the Battle. Application after camp.', poc: 'Ptr. YuSef Doca' },
       { id: 'd3e5', category: 'Q&A', start: '10:00 AM', end: '11:30 AM', title: 'Q&A Session', preview: 'Open floor discussion.', details: 'An interactive session addressing campers\' questions and providing clarity on the lessons learned.', poc: 'Pastor Amoz and Jeem' },
-      { id: 'd3e6', category: 'Closing', start: '11:30 AM', end: '12:30 PM', title: 'Commitment Ceremony', preview: 'Final group prayer.', details: 'A solemn time of individual commitment to live out the Battle Cry theme beyond the camp grounds.', poc: 'Pastor Amoz and Jeem' },
-      { id: 'd3e7', category: 'Awards', start: '1:30 PM', end: '2:30 PM', title: 'Awards Ceremony', preview: 'Recognition and farewell.', details: 'Awarding the Battle Royale champions and special individual citations. Final group photos.', poc: 'Pastor Amoz and Jeem' }
+      { id: 'd3e9', category: 'Circle', start: '11:30 AM', end: '12:00 PM', title: 'EMPOWER CIRCLE 5', preview: 'Final processing.', details: 'Concluding group session for reflection and looking forward to the mission beyond camp.', poc: 'Pastor Joseph and Pastor Paul' },
+      { id: 'd3e10', category: 'Meal', start: '12:00 PM', end: '1:00 PM', title: 'Lunch', preview: 'Final camp lunch.', details: 'Concluding meal shared as a camp community.', poc: 'ER' },
+      { id: 'd3e7', category: 'Awards', start: '1:05 PM', end: '1:30 PM', title: 'Awards Ceremony', preview: 'Recognition and farewell.', details: 'Awarding the Battle Royale champions and special individual citations. Final group photos.', poc: 'Pastor Amoz and Jeem' },
+      { id: 'd3e11', category: 'Checkout', start: '1:30 PM', end: '2:30 PM', title: 'Getting Ready to Go Home', preview: 'Final preparations.', details: 'Final room checks, gathering belongings, and saying goodbyes.', poc: 'Pastor Amoz and Jeem' }
     ]
   }
 ];
