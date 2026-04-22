@@ -1403,10 +1403,11 @@ export default function App() {
             <div className="flex items-center gap-2 sm:gap-4">
               <button 
                 onClick={() => setShowInfo(true)}
-                className="p-1.5 bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-[#ff533d]/10 border border-[#ff533d]/20 rounded-full text-[#ff533d] hover:bg-[#ff533d] hover:text-white transition-all shadow-lg shadow-[#ff533d]/5 group"
                 title="Information"
               >
-                <Info className="w-4 h-4" />
+                <Info className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] hidden sm:block">Info</span>
               </button>
             </div>
           </div>
