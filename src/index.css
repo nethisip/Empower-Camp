@@ -16,4 +16,26 @@
     list-style-type: decimal;
     margin-left: 1.5rem;
   }
+
+  .verse-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fee2e2;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .verse-btn:hover {
+    background-color: #ef4444;
+    color: white;
+    transform: scale(1.05);
+  }
 }
