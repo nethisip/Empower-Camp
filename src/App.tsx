@@ -520,7 +520,7 @@ const INITIAL_DATA: Day[] = [
     id: 'day2',
     label: 'Day 2',
     date: 'April 30',
-    theme: 'MY HARDSHIPS, HIS WORSHIP',
+    theme: 'APRIL 30 - 2nd DAY',
     events: [
       { id: 'd2e1', category: 'Warm-Up', start: '6:00 AM', end: '6:30 AM', title: 'Warm-Up / Energizers', preview: 'Morning energizers to start the day.', details: 'Physical activities and spiritual wake-up calls to prepare the body and mind for a demanding day.', poc: 'Pastor Amoz and Jeem' },
       { 
@@ -1047,7 +1047,7 @@ const INITIAL_DATA: Day[] = [
     id: 'day3',
     label: 'Day 3',
     date: 'May 1',
-    theme: 'MY BODY, HIS CHOICE',
+    theme: 'MAY 1 - Lastday',
     events: [
       { 
         id: 'd3e1', 
