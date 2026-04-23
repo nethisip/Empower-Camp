@@ -85,8 +85,308 @@ const INITIAL_DATA: Day[] = [
     date: 'April 29',
     theme: 'April 29 - 1st Day',
     events: [
-      { id: 'd1e1', category: 'Arrival', start: '8:00 AM', end: '9:00 AM', title: 'Registration & Check-In', preview: 'Campers arrive, register, receive kits, and get room assignments.', details: 'Campers arrive, register, receive kits, and get room assignments. Each camper will be greeted by the welcome team and guided to their designated quarters.', poc: 'Joy and Princess' },
-      { id: 'd1e2', category: 'Orientation', start: '9:00 AM', end: '10:30 AM', title: 'Camp Orientation', preview: 'Introduction to camp schedule, rules, and the Battle Royale.', details: 'Introduction to camp schedule, house rules, and safety protocols. Announcement of the Battle Royale competition details, team names, theme song, and chants.', poc: 'Pastor Amoz and Jeem' },
+      { 
+        id: 'd1e1', 
+        category: 'Arrival', 
+        start: '8:00 AM', 
+        end: '9:00 AM', 
+        title: 'Registration & Check-In', 
+        preview: 'Church-based processing and verification.', 
+        details: `
+          <div class="space-y-6">
+            <div class="p-6 bg-stone-900 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
+              <div class="absolute right-[-20px] top-[-20px] opacity-10">
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff533d] mb-2">Registration Flow</h4>
+              <h3 class="text-2xl font-black uppercase leading-tight italic">Step-by-Step Process</h3>
+            </div>
+
+            <div class="grid gap-4">
+              <div class="group flex gap-4 p-5 bg-stone-50 rounded-3xl border border-stone-100 transition-all">
+                <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-black shrink-0 text-sm">1</div>
+                <div>
+                  <h5 class="text-xs font-black uppercase tracking-widest text-[#ff533d] mb-1">Arrival</h5>
+                  <p class="text-stone-600 text-sm font-medium leading-tight">Proceed to the Registration Area with your church representative.</p>
+                </div>
+              </div>
+
+              <div class="group flex gap-4 p-5 bg-red-50 rounded-3xl border border-red-100 transition-all border-l-4 border-l-red-500">
+                <div class="w-10 h-10 rounded-2xl bg-red-600 text-white flex items-center justify-center font-black shrink-0 text-sm">2</div>
+                <div>
+                  <h5 class="text-xs font-black uppercase tracking-widest text-red-600 mb-1 font-bold">Church-Based Processing</h5>
+                  <p class="text-red-900 text-sm font-bold leading-tight">Processed PER CHURCH. Only ONE representative handles registration & payment.</p>
+                </div>
+              </div>
+
+              <div class="group flex gap-4 p-5 bg-stone-50 rounded-3xl border border-stone-100 transition-all">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-black shrink-0 text-sm">3</div>
+                <div>
+                  <h5 class="text-xs font-black uppercase tracking-widest text-emerald-600 mb-1">Registration Verification (Princess)</h5>
+                  <ul class="text-stone-600 text-xs font-medium space-y-1">
+                    <li>• <span class="font-bold text-stone-900">Online Registered:</span> Name verification only.</li>
+                    <li>• <span class="font-bold text-stone-900">Walk-in:</span> Fill out on-site form.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="group flex gap-4 p-5 bg-stone-50 rounded-3xl border border-stone-100 transition-all">
+                <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-black shrink-0 text-sm">4</div>
+                <div>
+                  <h5 class="text-xs font-black uppercase tracking-widest text-blue-600 mb-1">Payment Verification (Joy)</h5>
+                  <p class="text-stone-600 text-sm font-medium leading-tight">Confirm online payment or settle cash balance to finalize.</p>
+                </div>
+              </div>
+
+              <div class="group flex gap-4 p-5 bg-emerald-50 rounded-3xl border border-emerald-200 transition-all">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black shrink-0 text-sm">5</div>
+                <div>
+                  <h5 class="text-xs font-black uppercase tracking-widest text-emerald-700 mb-1 font-bold">Registration Confirmation</h5>
+                  <p class="text-emerald-900 text-sm font-bold italic leading-tight">Both registration & payment confirmed. Camper is officially cleared!</p>
+                </div>
+              </div>
+
+              <div class="group flex gap-4 p-5 bg-stone-50 rounded-3xl border border-stone-100 transition-all">
+                <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center font-black shrink-0 text-sm">6</div>
+                <div>
+                  <h5 class="text-xs font-black uppercase tracking-widest text-purple-600 mb-1">Release of Materials</h5>
+                  <p class="text-stone-600 text-sm font-medium leading-tight">Released PER CHURCH: Camp ID & Camp Program.</p>
+                </div>
+              </div>
+
+              <div class="group flex gap-4 p-5 bg-stone-50 rounded-3xl border border-stone-100 transition-all">
+                <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-black shrink-0 text-sm">7</div>
+                <div>
+                  <h5 class="text-xs font-black uppercase tracking-widest text-amber-600 mb-1">Empower Circle Grouping</h5>
+                  <p class="text-stone-600 text-sm font-medium leading-tight">Groups will be arranged by Princess according to age/category.</p>
+                </div>
+              </div>
+
+              <div class="group flex gap-4 p-5 bg-stone-50 rounded-3xl border border-stone-100 transition-all">
+                <div class="w-10 h-10 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-black shrink-0 text-sm">8</div>
+                <div>
+                  <h5 class="text-xs font-black uppercase tracking-widest text-stone-900 mb-1">Counselor Assignment</h5>
+                  <p class="text-stone-600 text-sm font-medium leading-tight">Designated counselors will be assigned based on groups.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `, 
+        poc: 'Joy & Princess' 
+      },
+      { 
+        id: 'd1e2', 
+        category: 'Orientation', 
+        start: '9:00 AM', 
+        end: '10:30 AM', 
+        title: 'Camp Orientation', 
+        preview: 'Flow, Leader Intro, and the Warrior Code.', 
+        details: `
+          <div class="space-y-8">
+            <div class="p-8 bg-stone-900 text-white rounded-[2.5rem] shadow-2xl relative overflow-hidden text-center">
+              <div class="absolute right-0 top-0 w-32 h-32 bg-[#ff533d]/10 rounded-full -translate-y-12 translate-x-12 blur-3xl"></div>
+              <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-[#ff533d] mb-4">Camp Orientation Flow</h4>
+              <div class="space-y-2">
+                <div class="flex flex-col items-center gap-1">
+                   <span class="text-4xl font-black italic text-[#ff533d] uppercase tracking-tighter">"Battle Cry"</span>
+                </div>
+                <p class="text-sm font-bold text-stone-400 uppercase tracking-widest">To Live Christ, To Die Gain • Philippians 1:20–21</p>
+              </div>
+            </div>
+
+            <div class="space-y-12">
+              <!-- Step 1 & 2 -->
+              <div class="grid grid-cols-1 gap-6">
+                <section class="p-8 bg-stone-50 rounded-[2.5rem] border border-stone-100">
+                  <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-black text-lg shadow-lg">01</div>
+                    <h5 class="text-xl font-black uppercase tracking-tight text-stone-900">Step 1 — Gather All Campers</h5>
+                  </div>
+                  <p class="text-stone-600 text-lg font-medium leading-relaxed">
+                    All campers will gather at the Main Session Hall. Counselors will guide their campers to sit properly while waiting for the orientation to begin.
+                  </p>
+                </section>
+
+                <section class="p-8 bg-red-50 rounded-[2.5rem] border border-red-100">
+                  <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center font-black text-lg shadow-lg">02</div>
+                    <h5 class="text-xl font-black uppercase tracking-tight text-red-600">Step 2 — Welcome and Opening</h5>
+                  </div>
+                  <div class="space-y-4">
+                    <p class="text-stone-700 text-lg font-bold">The host will officially welcome all campers and introduce the camp theme:</p>
+                    <div class="p-6 bg-white rounded-3xl border border-red-100 shadow-sm">
+                      <p class="text-2xl font-black text-stone-900 uppercase italic mb-1 tracking-tight">BATTLE CRY: To Live Christ, To Die Gain</p>
+                      <p class="text-sm font-black text-stone-400 uppercase tracking-widest">Philippians 1:20–21</p>
+                    </div>
+                    <p class="text-stone-600 font-medium">A short explanation of the purpose of the camp will be given:</p>
+                    <ul class="space-y-2 text-stone-900 font-black uppercase text-sm tracking-tight">
+                      <li class="flex items-center gap-3"><span class="text-red-500">⚔</span> To know Christ</li>
+                      <li class="flex items-center gap-3"><span class="text-red-500">⚔</span> To grow in faith</li>
+                      <li class="flex items-center gap-3"><span class="text-red-500">⚔</span> To challenge the youth to live boldly for Christ</li>
+                    </ul>
+                  </div>
+                </section>
+              </div>
+
+              <!-- Step 3 - Leaders -->
+              <section class="p-8 bg-white border border-stone-200 rounded-[2.5rem] shadow-sm">
+                <div class="flex items-center gap-4 mb-6">
+                  <div class="w-12 h-12 rounded-2xl bg-[#ff533d] text-white flex items-center justify-center font-black text-lg shadow-lg">03</div>
+                  <h5 class="text-xl font-black uppercase tracking-tight text-stone-900">Step 3 — Introduction of Camp Leaders</h5>
+                </div>
+                <p class="text-stone-600 font-medium mb-6">The camp leadership team will be introduced so campers know who will guide them during the camp.</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  ${[
+                    { role: 'Camp Director', name: 'Pastor Neth Isip' },
+                    { role: 'Leadership', name: 'Pastors present' },
+                    { role: 'Ministry', name: 'Camp Speakers' },
+                    { role: 'Facilitators', name: 'Commanders' },
+                    { role: 'Mentors', name: 'Counselors' },
+                    { role: 'Support', name: 'Camp Staff' }
+                  ].map(l => `
+                    <div class="p-5 bg-stone-50 rounded-2xl border border-stone-100 hover:border-red-200 transition-colors">
+                      <p class="text-[8px] font-black uppercase tracking-widest text-[#ff533d] mb-1">${l.role}</p>
+                      <p class="text-sm font-black text-stone-900 leading-tight uppercase">${l.name}</p>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <div class="mt-8">
+                  <h6 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Battle Commanders</h6>
+                  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    ${[
+                      { name: 'Joshua Z.', team: 'Blue Team', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100' },
+                      { name: 'Joshua B.', team: 'Green Team', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
+                      { name: 'Aishen D.', team: 'Orange Team', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100' },
+                      { name: 'Joyce R.', team: 'Violet Team', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100' },
+                      { name: 'Chelyn M.', team: 'Yellow Team', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100' },
+                      { name: 'Karylle A.', team: 'Red Team', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100' }
+                    ].map(c => `
+                      <div class="p-4 ${c.bg} ${c.border} rounded-2xl border shadow-sm">
+                        <p class="text-[8px] font-black uppercase tracking-widest ${c.text} opacity-70 mb-1">${c.team}</p>
+                        <p class="text-xs font-black ${c.text} uppercase">${c.name}</p>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              </section>
+
+              <!-- Step 4 - The Warrior Code -->
+              <section class="p-8 bg-red-600 rounded-[3rem] shadow-2xl text-white relative overflow-hidden">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20"></div>
+                <div class="relative z-10">
+                  <div class="flex flex-col items-center text-center mb-8">
+                    <div class="w-16 h-16 rounded-3xl bg-white text-red-600 flex items-center justify-center font-black text-2xl mb-4 shadow-2xl ring-8 ring-white/10">04</div>
+                    <h4 class="text-sm font-black uppercase tracking-[0.5em] text-red-200 mb-2">Code of Conduct</h4>
+                    <h3 class="text-4xl font-black uppercase italic leading-none tracking-tighter">The Warrior Code</h3>
+                  </div>
+
+                  <p class="text-center text-red-100 font-bold mb-8 uppercase tracking-widest text-xs">To maintain order, safety, and spiritual focus, all campers are expected to follow the camp rules.</p>
+
+                  <div class="grid grid-cols-1 gap-4 mb-10">
+                    ${[
+                      { title: 'A Warrior Shows Up', desc: 'Every devotion and service is part of your training. Be present. Be ready. Be engaged.' },
+                      { title: 'A Warrior Respects the Camp', desc: 'Take care of the campgrounds. Clean up after yourself. Honor the place where God is working.' },
+                      { title: 'A Warrior Rejects Distractions', desc: 'Phones and gadgets stay away. This is your time to focus on God and the mission.' },
+                      { title: 'A Warrior Honors Others', desc: 'No bullying. No tearing others down. We fight battles together, not against each other.' },
+                      { title: 'A Warrior Follows Leadership', desc: 'Counselors and leaders are here to guide you. Listen, cooperate, and learn.' },
+                      { title: 'A Warrior Represents Christ Well', desc: 'Dress modestly and appropriately. You carry the name of Christ.' },
+                      { title: 'A Warrior Keeps Discipline', desc: 'Maintain good hygiene and keep your space clean.' },
+                      { title: 'A Warrior Builds Brotherhood', desc: 'Include others. Encourage one another. No warrior fights alone.' },
+                      { title: 'A Warrior Gives His Best', desc: 'Participate fully in every activity, challenge, and session.' },
+                      { title: 'A Warrior Finishes the Mission', desc: 'Follow the rules. Stay committed. Make every moment of camp count.' }
+                    ].map((rule, idx) => `
+                      <div class="flex gap-5 p-6 bg-white/10 backdrop-blur-md rounded-[2rem] border border-white/20 hover:bg-white hover:text-red-700 transition-all group group">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 font-black text-xs group-hover:bg-red-600 group-hover:text-white">${idx+1}</div>
+                        <div class="space-y-1">
+                          <h6 class="text-sm font-black uppercase tracking-widest">${rule.title}</h6>
+                          <p class="text-[11px] font-medium opacity-80 leading-relaxed">${rule.desc}</p>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+
+                  <div class="p-8 bg-black/30 rounded-[2.5rem] border border-white/10 space-y-4">
+                    <h5 class="text-xs font-black uppercase tracking-[0.3em] text-red-400">Camp Discipline Policy</h5>
+                    <p class="text-sm font-medium text-red-100 leading-relaxed italic">
+                      All campers are expected to follow the Warrior Code and camp rules at all times. Any major violation may result in immediate dismissal from the camp and being sent home. 
+                      <span class="block mt-4 not-italic font-black text-white uppercase tracking-tight">The decision will be made by the Pastors present and the Camp Director, Pastor Neth Isip.</span>
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Step 5 - Facilities -->
+              <section class="p-8 bg-stone-50 rounded-[2.5rem] border border-stone-100">
+                <div class="flex items-center gap-4 mb-6">
+                  <div class="w-12 h-12 rounded-2xl bg-[#ff533d] text-white flex items-center justify-center font-black text-lg shadow-lg">05</div>
+                  <h5 class="text-xl font-black uppercase tracking-tight text-stone-900">Step 5 — Facilities Orientation</h5>
+                </div>
+                <p class="text-stone-600 font-medium mb-6">Campers will be informed about the locations of important areas:</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  ${['Sleeping quarters', 'Bathrooms', 'Dining area', 'Session hall', 'Game areas', 'Emergency locations'].map(f => `
+                    <div class="flex items-center gap-3 p-4 bg-white rounded-2xl border border-stone-100 font-black text-[10px] uppercase tracking-widest text-stone-800 shadow-sm">
+                      <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                      ${f}
+                    </div>
+                  `).join('')}
+                </div>
+              </section>
+
+              <!-- Step 6 & 7 -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <section class="p-8 bg-stone-50 rounded-[2.5rem] border border-stone-100">
+                  <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-black text-lg shadow-lg">06</div>
+                    <h5 class="text-xl font-black uppercase tracking-tight text-stone-900">Step 6 — Empower Circle</h5>
+                  </div>
+                  <p class="text-stone-600 text-sm font-medium leading-relaxed">
+                    Campers will then be officially placed into their Empower Circle groups arranged by Princess. Each group will meet their assigned counselor.
+                  </p>
+                </section>
+                <section class="p-8 bg-stone-50 rounded-[2.5rem] border border-stone-100">
+                  <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-black text-lg shadow-lg">07</div>
+                    <h5 class="text-xl font-black uppercase tracking-tight text-stone-900">Step 7 — Team Identity</h5>
+                  </div>
+                  <div class="space-y-4">
+                    <p class="text-stone-600 text-sm font-medium">Groups will prepare their team identity, which may include:</p>
+                    <div class="flex flex-wrap gap-2">
+                       <span class="px-3 py-1 bg-white border border-stone-100 rounded-lg text-[9px] font-black uppercase tracking-widest">Team name</span>
+                       <span class="px-3 py-1 bg-white border border-stone-100 rounded-lg text-[9px] font-black uppercase tracking-widest">Team chant</span>
+                       <span class="px-3 py-1 bg-white border border-stone-100 rounded-lg text-[9px] font-black uppercase tracking-widest">Team banner</span>
+                    </div>
+                    <p class="text-xs font-bold text-red-500 uppercase italic">This builds team unity and excitement for the activities ahead.</p>
+                  </div>
+                </section>
+              </div>
+
+              <!-- Step 8 - Closing -->
+              <section class="p-8 bg-stone-900 text-white rounded-[3rem] shadow-2xl relative overflow-hidden border border-white/5">
+                <div class="flex items-center gap-4 mb-6">
+                  <div class="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center font-black text-lg shadow-lg">08</div>
+                  <h5 class="text-xl font-black uppercase tracking-tight">Step 8 — Orientation Closing</h5>
+                </div>
+                <div class="space-y-6">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-5 bg-white/5 rounded-2xl border border-white/5">
+                      <p class="text-[9px] font-black uppercase tracking-widest text-red-500 mb-2">Action Items</p>
+                      <ul class="text-sm font-bold text-stone-300 space-y-2">
+                        <li>• Final reminders</li>
+                        <li>• Next scheduled activity announcement</li>
+                      </ul>
+                    </div>
+                    <div class="p-5 bg-white/5 rounded-2xl border border-white/5 flex items-center">
+                      <p class="text-xs font-medium text-stone-400 italic">Counselors will then guide their campers to their next activity according to the camp schedule.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        `, 
+        poc: 'Bro. Er, Bro. Jeem & CAMP HOST' 
+      },
       { id: 'd1e3', category: 'Games', start: '10:30 AM', end: '12:00 PM', title: 'Indoor Game', preview: 'Fun group games and Bible challenges to break the ice.', details: 'High-energy indoor games designed to foster teamwork and familiarity among campers. Includes Bible-themed trivia and physical challenges.', poc: 'Beth' },
       { id: 'd1e4', category: 'Meal', start: '12:00 PM', end: '1:00 PM', title: 'Lunch', preview: 'Lunch break.', details: 'Commanders, ensure your team is complete and properly lined up in front of the canteen at least 5 minutes before lunchtime. Please check that all members are present before forming the line so we can keep the schedule organized.', poc: 'ER' },
       { 
@@ -276,7 +576,89 @@ const INITIAL_DATA: Day[] = [
         `, 
         poc: 'Pastor Joseph and Pastor Paul' 
       },
-      { id: 'd1e7', category: 'Team', start: '3:00 PM', end: '5:00 PM', title: 'Team Formation', preview: 'Teams organize and build team identity.', details: 'Teams work on their banners, war cries, and identity. This time is crucial for establishing team synergy for the coming competitions.', poc: 'Beth' },
+      { 
+        id: 'd1e7', 
+        category: 'Team', 
+        start: '3:00 PM', 
+        end: '5:00 PM', 
+        title: 'Team Formation', 
+        preview: 'Teams organize and build team identity.', 
+        details: `
+          <div class="space-y-8">
+            <div class="p-8 bg-stone-900 border border-stone-800 rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-red-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-red-500 mb-2">Operation Highlights</h4>
+              <h3 class="text-3xl font-black uppercase tracking-tight italic leading-none">Commander Instructions</h3>
+              <p class="mt-4 text-stone-400 font-medium leading-relaxed">
+                During this time, teams will work on their team identity. Each team will prepare their banner, war cry, and team identity.
+              </p>
+            </div>
+
+            <div class="p-8 bg-red-50 border border-red-100 rounded-[2.5rem] space-y-4">
+              <p class="text-xl font-bold text-stone-900 leading-snug italic">
+                "This session is important because it builds team unity, energy, and synergy that will carry through the coming competitions and activities."
+              </p>
+              <p class="text-sm font-black uppercase tracking-widest text-red-600">
+                Commanders are responsible for guiding, organizing, and motivating their teams.
+              </p>
+            </div>
+
+            <section class="space-y-4">
+              <h4 class="text-xs font-black uppercase tracking-[0.2em] text-stone-400">Instructions for Battle Commanders</h4>
+              <div class="grid grid-cols-1 gap-3">
+                ${[
+                  'Gather your team members and make sure everyone is present.',
+                  'Lead the team in choosing a team identity (name, theme, or concept).',
+                  'Guide the team in creating their team banner.',
+                  'Help the team develop a war cry that represents their spirit and unity.',
+                  'Encourage team participation so every member contributes.',
+                  'Build team synergy and excitement for the competitions ahead.',
+                  'Prepare the team for the presentation of banners and war cries when called.'
+                ].map((task, idx) => `
+                  <div class="flex items-center gap-4 p-5 bg-white border border-stone-100 rounded-2xl shadow-sm">
+                    <div class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-black text-xs shrink-0">${idx + 1}</div>
+                    <p class="text-stone-800 font-bold uppercase tracking-tight text-sm">${task}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </section>
+
+            <section class="p-8 bg-stone-50 border border-stone-100 rounded-[2.5rem]">
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-1.5 h-6 bg-red-600 rounded-full"></div>
+                <h4 class="text-xl font-black uppercase tracking-tight text-stone-900">Battle Commanders</h4>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                ${[
+                  { name: 'Joshua Z.', team: 'Blue Team', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900', sub: 'text-blue-600' },
+                  { name: 'Joshua B.', team: 'Green Team', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-900', sub: 'text-emerald-600' },
+                  { name: 'Aishen D.', team: 'Orange Team', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-900', sub: 'text-orange-600' },
+                  { name: 'Joyce R.', team: 'Violet Team', bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900', sub: 'text-purple-600' },
+                  { name: 'Chelyn M.', team: 'Yellow Team', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-900', sub: 'text-amber-600' },
+                  { name: 'Karylle A.', team: 'Red Team', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-900', sub: 'text-red-600' }
+                ].map(c => `
+                  <div class="p-6 ${c.bg} ${c.border} border-2 rounded-3xl flex items-center justify-between shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+                    <div class="absolute right-[-10px] bottom-[-10px] opacity-10 group-hover:opacity-20 transition-opacity">
+                      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="relative z-10">
+                      <p class="text-[10px] font-black uppercase tracking-widest ${c.sub} mb-1">${c.team}</p>
+                      <p class="text-xl font-black uppercase tracking-tight ${c.text}">${c.name}</p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </section>
+
+            <div class="p-6 bg-stone-900 rounded-3xl border border-stone-800">
+              <p class="text-xs font-bold text-stone-400 italic text-center leading-relaxed">
+                "Commanders should ensure that their team remains organized, respectful, and enthusiastic during this activity."
+              </p>
+            </div>
+          </div>
+        `, 
+        poc: 'Battle Commanders' 
+      },
       { id: 'd1e8', category: 'Free Time', start: '5:00 PM', end: '6:00 PM', title: 'Free Time', preview: 'Rest, refresh, or connect with other campers.', details: 'Unstructured time for campers to rest, shower, or engage in personal prayer and reflection.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd1e9', category: 'Meal', start: '6:00 PM', end: '7:00 PM', title: 'Dinner', preview: 'Dinner break.', details: 'Commanders, make sure your team is complete and lined up in front of the canteen at least 5 minutes before dinner time. Kindly confirm that all members are present before lining up.', poc: 'ER' },
       { id: 'd1e10', category: 'Worship', start: '7:00 PM', end: '8:30 PM', title: 'Worship Night', preview: 'High-energy praise and worship.', details: 'A vibrant concert-style worship experience led by the Empower Worship Team, focusing on exuberant praise.', poc: 'Pastor Amoz and Jeem' },
@@ -1738,7 +2120,7 @@ export default function App() {
                         <User className="w-6 h-6" />
                       </div>
                       <div>
-                        <div className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400 mb-0.5">PIC / Facilitator</div>
+                        <div className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400 mb-0.5">Person in Charge</div>
                         <div className="text-lg font-black text-stone-900 uppercase tracking-tight leading-none">{selectedEvent.poc}</div>
                       </div>
                     </div>
@@ -1778,6 +2160,71 @@ export default function App() {
               </div>
               
               <div className="flex-1 overflow-y-auto p-8 pt-6 space-y-12 no-scrollbar">
+                {/* Registration Flow */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 text-[#ff533d]">
+                    <div className="w-5 h-5 rounded-lg bg-[#ff533d]/10 flex items-center justify-center">
+                      <Check className="w-3 h-3" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Registration Flow</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="relative pl-8 pb-6 border-l-2 border-stone-100 last:border-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-[#ff533d] border-4 border-white shadow-sm" />
+                      <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100">
+                        <h5 className="text-[10px] font-black uppercase text-[#ff533d] mb-1">Step 1 — Arrival</h5>
+                        <p className="text-xs font-bold text-stone-900 uppercase">Proceed to Registration with church representative.</p>
+                      </div>
+                    </div>
+
+                    <div className="relative pl-8 pb-6 border-l-2 border-stone-100 last:border-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-red-600 border-4 border-white shadow-sm" />
+                      <div className="p-4 bg-red-50 rounded-2xl border border-red-100">
+                        <h5 className="text-[10px] font-black uppercase text-red-600 mb-1">Step 2 — Church-Based</h5>
+                        <p className="text-xs font-black text-red-900 leading-tight">ONLY ONE REPRESENTATIVE PER CHURCH HANDLES PAYMENT & REGISTRATION.</p>
+                      </div>
+                    </div>
+
+                    <div className="relative pl-8 pb-6 border-l-2 border-stone-100 last:border-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-sm" />
+                      <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100">
+                        <h5 className="text-[10px] font-black uppercase text-emerald-600 mb-1">Step 3 — Verification (Princess)</h5>
+                        <p className="text-xs font-bold text-stone-900 leading-tight">ONLINE REGISTERED: NAME ONLY. OTHERS: FILL OUT FORM.</p>
+                      </div>
+                    </div>
+
+                    <div className="relative pl-8 pb-6 border-l-2 border-stone-100 last:border-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow-sm" />
+                      <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100">
+                        <h5 className="text-[10px] font-black uppercase text-blue-600 mb-1">Step 4 — Payment (Joy)</h5>
+                        <p className="text-xs font-bold text-stone-900 leading-tight">VERIFY ONLINE PROOF OR SETTLE BALANCE ON-SITE.</p>
+                      </div>
+                    </div>
+
+                    <div className="relative pl-8 pb-6 border-l-2 border-stone-100 last:border-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-emerald-600 border-4 border-white shadow-sm" />
+                      <div className="p-4 bg-emerald-600 text-white rounded-2xl shadow-lg">
+                        <h5 className="text-[10px] font-black uppercase text-emerald-200 mb-1">Step 5 — Cleared!</h5>
+                        <p className="text-[11px] font-black uppercase italic">OFFICIALLY REGISTERED & CONFIRMED.</p>
+                      </div>
+                    </div>
+
+                    <div className="relative pl-8 pb-6 border-l-2 border-stone-100 last:border-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-stone-900 border-4 border-white shadow-sm" />
+                      <div className="p-4 bg-stone-900 text-white rounded-2xl">
+                        <h5 className="text-[9px] font-black uppercase text-stone-400 mb-1">Step 6-8 — Final Moves</h5>
+                        <p className="text-[10px] font-black uppercase leading-tight">RELEASE IDS/PROGRAMS (PER CHURCH) → GROUPING → COUNSELOR ASSIGNMENT.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-red-50 rounded-2xl border border-red-100 flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-red-400 tracking-widest">In Charge:</span>
+                    <span className="text-xs font-black text-stone-900 uppercase">Joy & Princess</span>
+                  </div>
+                </div>
+
                 {/* Things to Bring */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-[#ff533d]">
