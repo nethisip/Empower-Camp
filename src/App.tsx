@@ -19,6 +19,7 @@ import {
   Tag, 
   Info,
   User,
+  ExternalLink,
   Filter,
   Check,
   Sword
@@ -47,9 +48,10 @@ const BIBLE_VERSES: Record<string, string> = {
   'Romans 5:8': 'But God demonstrates His own love toward us, in that while we were still sinners, Christ died for us.',
   'John 3:16': 'For God so loved the world that He gave His only begotten Son, that whoever believes in Him should not perish but have everlasting life.',
   '2 Corinthians 5:17': 'Therefore, if anyone is in Christ, he is a new creation; old things have passed away; behold, all things have become new.',
-  'Philippians 1:20–21': 'according to my earnest expectation and hope that in nothing I shall be ashamed, but with all boldness, as always, so now also Christ will be magnified in my body, whether by life or by death. For to me, to live is Christ, and to die is gain.',
+  'Philippians 1:20–21': 'According to my earnest expectation and hope that in nothing I shall be ashamed, but with all boldness, as always, so now also Christ will be magnified in my body, whether by life or by death. For to me, to live is Christ, and to die is gain.',
+  'Philippians 1:21': 'For to me, to live is Christ, and to die is gain.',
   'Judges 21:25': 'In those days there was no king in Israel; everyone did what was right in his own eyes.',
-  'Philippians 1:20': 'according to my earnest expectation and hope that in nothing I shall be ashamed, but with all boldness, as always, so now also Christ will be magnified in my body, whether by life or by death.',
+  'Philippians 1:20': 'According to my earnest expectation and hope that in nothing I shall be ashamed, but with all boldness, as always, so now also Christ will be magnified in my body, whether by life or by death.',
   'Philippians 1:9–10': 'And this I pray, that your love may abound still more and more in knowledge and all discernment, that you may approve the things that are excellent, that you may be sincere and without offense till the day of Christ,',
   'Ephesians 3:17': 'that Christ may dwell in your hearts through faith; that you, being rooted and grounded in love,',
   'Colossians 2:6–7': 'As you therefore have received Christ Jesus the Lord, so walk in Him, rooted and built up in Him and established in the faith, as you have been taught, abounding in it with thanksgiving.',
@@ -65,6 +67,7 @@ const BIBLE_VERSES: Record<string, string> = {
   'Romans 3:23–26': 'for all have sinned and fall short of the glory of God, being justified freely by His grace through the redemption that is in Christ Jesus, whom God set forth as a propitiation by His blood, through faith, to demonstrate His righteousness, because in His forbearance God had passed over the sins that were previously committed, to demonstrate at the present time His righteousness, that He might be just and the justifier of the one who has faith in Jesus.',
   'Luke 9:23': 'Then He said to them all, “If anyone desires to come after Me, let him deny himself, and take up his cross daily, and follow Me.',
   'Philippians 1:27': 'Only let your conduct be worthy of the gospel of Christ, so that whether I come and see you or am absent, I may hear of your affairs, that you stand fast in one spirit, with one mind striving together for the faith of the gospel,',
+  'Philippians 1:27b': '…with one mind striving together for the faith of the gospel.',
   'Philippians 1:27–28': 'Only let your conduct be worthy of the gospel of Christ, so that whether I come and see you or am absent, I may hear of your affairs, that you stand fast in one spirit, with one mind striving together for the faith of the gospel, and not in any way terrified by your adversaries, which is to them a proof of perdition, but to you of salvation, and that from God.',
   'Philippians 1:13': 'so that it has become evident to the whole palace guard, and to all the rest, that my chains are in Christ;',
   '1 Timothy 6:12': 'Fight the good fight of faith, lay hold on eternal life, whereunto thou art also called.',
@@ -1364,69 +1367,134 @@ const INITIAL_DATA: Day[] = [
         preview: 'Speaker: Ptr. Neth Isip', 
         details: `
           <div class="space-y-8">
-            <div class="p-8 bg-stone-900 text-white rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-              <div class="absolute top-0 right-0 p-4 opacity-10">
+            <div class="p-8 bg-stone-50 text-stone-900 rounded-[2.5rem] shadow-sm relative overflow-hidden border border-stone-100">
+              <div class="absolute top-0 right-0 p-4 opacity-5">
                 <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
-              <span class="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff533d] mb-4 block">Theme: Christ-Consumed Living</span>
-              <h4 class="text-4xl font-black uppercase tracking-tight leading-none mb-6">How should a warrior live?</h4>
-              <div class="space-y-2">
-                <p class="text-xl font-bold flex items-center gap-3"><span class="w-2 h-2 bg-[#ff533d] rounded-full"></span> Not casual.</p>
-                <p class="text-xl font-bold flex items-center gap-3"><span class="w-2 h-2 bg-[#ff533d] rounded-full"></span> Not convenient.</p>
-                <p class="text-xl font-bold flex items-center gap-3"><span class="w-2 h-2 bg-[#ff533d] rounded-full"></span> Not comfortable.</p>
-                <p class="text-3xl font-black text-[#ff533d] uppercase mt-4">A warrior lives Christ-Consumed.</p>
+              <span class="text-[10px] font-black uppercase tracking-[0.3em] text-red-500 mb-4 block">Epistle to the Philippians</span>
+              <h4 class="text-4xl font-black uppercase tracking-tight leading-none mb-6 italic">Walking Worthy in the Battle</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="p-6 bg-white rounded-2xl border border-stone-100 shadow-sm">
+                  <p class="text-[9px] font-black text-stone-500 uppercase tracking-widest mb-1">Main Text</p>
+                  <p class="text-sm font-bold text-stone-900">Philippians 1:27</p>
+                </div>
+                <div class="p-6 bg-red-50 rounded-2xl border border-red-100 shadow-sm">
+                  <p class="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Camp Theme Verse</p>
+                  <p class="text-sm font-bold text-red-700">Philippians 1:21</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-10 bg-white border-2 border-stone-100 rounded-[3rem] shadow-xl relative overflow-hidden group">
+              <div class="absolute top-0 right-0 w-48 h-48 bg-red-500/5 rounded-full blur-3xl -mr-24 -mt-24 transition-opacity group-hover:opacity-100 opacity-50"></div>
+              <p class="text-[10px] font-black uppercase tracking-[0.4em] text-red-500 mb-2">Primary Vision</p>
+              <h3 class="text-5xl font-black uppercase tracking-tighter italic leading-none mb-8 text-stone-900">Christ-Consumed Living</h3>
+              
+              <div class="space-y-6">
+                <div>
+                  <p class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">How should a warrior live?</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="p-5 bg-stone-50 rounded-2xl border border-stone-100 flex items-center gap-4 group/item hover:border-red-200 transition-colors">
+                      <div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                      <p class="text-xl font-black text-stone-800 uppercase tracking-tight">Not casual.</p>
+                    </div>
+                    <div class="p-5 bg-stone-50 rounded-2xl border border-stone-100 flex items-center gap-4 group/item hover:border-red-200 transition-colors">
+                      <div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                      <p class="text-xl font-black text-stone-800 uppercase tracking-tight">Not convenient.</p>
+                    </div>
+                    <div class="p-5 bg-stone-50 rounded-2xl border border-stone-100 flex items-center gap-4 group/item hover:border-red-200 transition-colors">
+                      <div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                      <p class="text-xl font-black text-stone-800 uppercase tracking-tight">Not comfortable.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="pt-6 border-t border-stone-100">
+                   <p class="text-3xl font-black text-red-600 uppercase tracking-tighter italic animate-pulse">A warrior lives Christ-Consumed.</p>
+                </div>
               </div>
             </div>
 
             <div class="flex items-center gap-3 text-stone-400 uppercase tracking-[0.2em] text-[10px] font-black">
               <div class="h-px flex-1 bg-stone-100"></div>
-              Main Battle Commands
+              Mission Parameters
               <div class="h-px flex-1 bg-stone-100"></div>
             </div>
 
             <section>
-              <h4 class="text-2xl font-black text-stone-900 border-l-4 border-red-500 pl-4 mb-4 uppercase">1. SURRENDER — Die to Self</h4>
-              <p class="text-lg text-stone-700 font-medium leading-relaxed mb-4">
-                Before a warrior fights, he must first surrender to the King. Jesus calls His followers to deny themselves and take up their cross. A life devoted to Christ begins with surrender—laying down personal control, pride, and sin to follow Him fully.
-              </p>
-              <div class="flex flex-wrap gap-2 mb-4">
-                <button class="verse-btn" data-verse="Luke 9:23">Luke 9:23</button>
-              </div>
-              <div class="bg-red-50 p-4 rounded-xl italic font-bold text-red-700">Key Truth: Victory in the Christian life begins with total surrender to Christ.</div>
-            </section>
-
-            <section>
-              <h4 class="text-2xl font-black text-stone-900 border-l-4 border-red-500 pl-4 mb-4 uppercase">2. STAND — Hold the Line</h4>
+              <h4 class="text-2xl font-black text-stone-900 border-l-4 border-red-500 pl-4 mb-4 uppercase">1. STAND — Hold the Line</h4>
               <p class="text-lg text-stone-700 font-medium leading-relaxed mb-4">
                 Paul calls believers to stand firm in one spirit. Christians are citizens of Heaven living in the world, representing Christ wherever they go. Just as Roman colonies reflected Rome, believers are called to reflect the kingdom of God in their everyday lives.
               </p>
-              <div class="flex flex-wrap gap-2 mb-4">
-                <button class="verse-btn" data-verse="Philippians 1:27">Philippians 1:27</button>
+              <div class="p-6 bg-stone-50 rounded-[2rem] border border-stone-100 mb-4">
+                <div class="flex items-center justify-between mb-3">
+                  <p class="text-[10px] font-black text-red-600 uppercase tracking-[0.2em]">Philippians 1:27 (NKJV)</p>
+                  <button class="verse-btn text-[10px] font-black text-stone-400 hover:text-red-600 transition-colors" data-verse="Philippians 1:27">VIEW FULL</button>
+                </div>
+                <p class="text-stone-800 font-bold italic leading-relaxed">
+                  “Only let your conduct be worthy of the gospel of Christ… that you stand fast in one spirit…”
+                </p>
               </div>
-              <div class="bg-red-50 p-4 rounded-xl italic font-bold text-red-700">Key Truth: Christ-followers must stand firm and represent Christ wherever they are placed.</div>
+              <div class="bg-red-50 p-6 rounded-2xl italic font-bold text-red-700 border border-red-100 shadow-sm">Key Truth: Christ-followers must stand firm and represent Christ wherever they are placed.</div>
             </section>
 
             <section>
-              <h4 class="text-2xl font-black text-stone-900 border-l-4 border-red-500 pl-4 mb-4 uppercase">3. STRIVE — Fight as One</h4>
+              <h4 class="text-2xl font-black text-stone-900 border-l-4 border-red-500 pl-4 mb-4 uppercase">2. STRIVE — Fight as One</h4>
               <p class="text-lg text-stone-700 font-medium leading-relaxed mb-4">
-                The Christian life is not meant to be lived alone. Paul urges believers to strive together for the faith, standing side by side like soldiers in formation. Unity, accountability, and shared faith strengthen believers to endure the battles of life.
+                The Christian life is not meant to be lived alone. Paul urges believers to strive together for the faith of the gospel, standing side by side like soldiers in formation. Unity and shared mission strengthen believers to endure spiritual battles.
               </p>
-              <div class="bg-red-50 p-4 rounded-xl italic font-bold text-red-700">Key Truth: Spiritual battles are fought best when believers stand together in unity.</div>
+              <div class="p-6 bg-stone-50 rounded-[2rem] border border-stone-100 mb-4">
+                <div class="flex items-center justify-between mb-3">
+                  <p class="text-[10px] font-black text-red-600 uppercase tracking-[0.2em]">Philippians 1:27b (NKJV)</p>
+                  <button class="verse-btn text-[10px] font-black text-stone-400 hover:text-red-600 transition-colors" data-verse="Philippians 1:27b">VIEW FULL</button>
+                </div>
+                <p class="text-stone-800 font-bold italic leading-relaxed">
+                  “…with one mind striving together for the faith of the gospel.”
+                </p>
+              </div>
+              <div class="bg-red-50 p-6 rounded-2xl italic font-bold text-red-700 border border-red-100 shadow-sm">Key Truth: Spiritual battles are fought best when believers stand together in unity.</div>
+            </section>
+
+            <section>
+              <h4 class="text-2xl font-black text-stone-900 border-l-4 border-red-500 pl-4 mb-4 uppercase">3. SURRENDER — Live Christ</h4>
+              <p class="text-lg text-stone-700 font-medium leading-relaxed mb-4">
+                Before a warrior fights, he must first surrender to the King. Paul’s life shows that true victory begins when Christ becomes the center of life itself. A warrior of Christ lays down pride, control, and self-interest so that Christ may be fully seen through him.
+              </p>
+              <div class="p-6 bg-stone-50 rounded-[2rem] border border-stone-100 mb-4">
+                <div class="flex items-center justify-between mb-3">
+                  <p class="text-[10px] font-black text-red-600 uppercase tracking-[0.2em]">Philippians 1:21 (NKJV)</p>
+                  <button class="verse-btn text-[10px] font-black text-stone-400 hover:text-red-600 transition-colors" data-verse="Philippians 1:21">VIEW FULL</button>
+                </div>
+                <p class="text-stone-800 font-bold italic leading-relaxed">
+                  “For to me, to live is Christ, and to die is gain.”
+                </p>
+              </div>
+              <div class="bg-red-50 p-6 rounded-2xl italic font-bold text-red-700 border border-red-100 shadow-sm">Key Truth: Victory in the Christian life begins when Christ becomes our life.</div>
             </section>
 
             <section class="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div class="p-8 bg-stone-50 rounded-[2rem] border border-stone-100">
-                <h5 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Core Idea</h5>
-                <ul class="space-y-3 text-stone-800 font-bold">
-                  <li class="flex items-start gap-2 text-sm"><span class="text-[#ff533d]">01</span> Surrender to the King.</li>
-                  <li class="flex items-start gap-2 text-sm"><span class="text-[#ff533d]">02</span> Stand firm in the faith.</li>
-                  <li class="flex items-start gap-2 text-sm"><span class="text-[#ff533d]">03</span> Strive together with God’s people.</li>
+              <div class="p-8 bg-stone-50 rounded-[2.5rem] border border-stone-100 shadow-sm">
+                <h5 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-6">Core Idea</h5>
+                <ul class="space-y-4 text-stone-800 font-bold">
+                  <li class="flex items-center gap-4 text-sm uppercase tracking-tight">
+                    <span class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center text-xs font-black shrink-0">01</span>
+                    Stand firm in the Gospel.
+                  </li>
+                  <li class="flex items-center gap-4 text-sm uppercase tracking-tight">
+                    <span class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center text-xs font-black shrink-0">02</span>
+                    Strive together for the faith.
+                  </li>
+                  <li class="flex items-center gap-4 text-sm uppercase tracking-tight">
+                    <span class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center text-xs font-black shrink-0">03</span>
+                    Surrender fully to Christ.
+                  </li>
                 </ul>
               </div>
-              <div class="p-8 bg-stone-50 rounded-[2rem] border border-stone-100">
-                <h5 class="text-xs font-black uppercase tracking-widest text-[#ff533d] mb-4">Key Takeaway</h5>
-                <p class="text-sm font-bold text-stone-800 leading-relaxed">
-                  The Christian life is not passive or comfortable. A true follower of Christ lives fully surrendered, firmly grounded, and faithfully united with others in the battle for the Gospel.
+              <div class="p-8 bg-red-600 text-white rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16"></div>
+                <h5 class="text-[10px] font-black uppercase tracking-widest text-red-100 mb-4 relative z-10">Key Takeaway</h5>
+                <p class="text-lg font-black leading-relaxed relative z-10 italic">
+                  The Christian life is a battle for the Gospel. A true follower of Christ stands firm in conviction, strives together in unity, and lives fully surrendered to Christ — because for us, to live is Christ and to die is gain.
                 </p>
               </div>
             </section>
@@ -1434,8 +1502,8 @@ const INITIAL_DATA: Day[] = [
         `, 
         poc: 'Ptr. Neth Isip',
         speaker: 'Ptr. Neth Isip',
-        verse: 'Philippians 1:27',
-        goal: 'Call campers to live a life worthy of the Gospel. Challenge them to stand firm in faith and live as citizens of Heaven.'
+        verse: 'Philippians 1:21, 1:27',
+        goal: 'Call campers to live a life worthy of the Gospel. Challenge them to stand firm in conviction, strive in unity, and live fully surrendered.'
       },
       { id: 'd2e14', category: 'Campfire', start: '9:30 PM', end: '11:00 PM', title: 'Campfire', preview: 'What Are You Burning?', details: 'Facilitators: Ton / Theo / Lester / Venzen. Theme: What Are You Burning Tonight? A symbolic act of surrendering burdens.', poc: 'Pastor Amoz and Jeem' },
       { id: 'd2e15', category: 'Lights Off', start: '11:00 PM', end: '11:30 PM', title: 'Lights Off', preview: 'Final night rest.', details: 'Rest for the concluding day of the camp.', poc: 'Pastor Amoz and Jeem' }
@@ -2347,10 +2415,19 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-10 pt-8 border-t border-stone-100">
+              <div className="mt-10 pt-8 border-t border-stone-100 flex flex-col sm:flex-row gap-3">
+                <a 
+                  href={`https://www.biblegateway.com/passage/?search=${encodeURIComponent(activeVerse.ref)}&version=NKJV`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-stone-100 text-stone-600 py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Read NKJV Online
+                </a>
                 <button 
                   onClick={() => setActiveVerse(null)}
-                  className="w-full bg-stone-900 text-white py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-stone-800 transition-all"
+                  className="flex-1 bg-stone-900 text-white py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-stone-800 transition-all"
                 >
                   Close Verse
                 </button>
