@@ -238,11 +238,10 @@ const INITIAL_DATA: Day[] = [
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   ${[
                     { role: 'Camp Director', name: 'Pastor Neth Isip' },
+                    { role: 'Co Director', name: 'Pas Amoz, Bro. Jeemm, Bro. King and Bro. ER' },
                     { role: 'Leadership', name: 'Pastors present' },
-                    { role: 'Ministry', name: 'Camp Speakers' },
-                    { role: 'Facilitators', name: 'Commanders' },
-                    { role: 'Mentors', name: 'Counselors' },
-                    { role: 'Support', name: 'Camp Staff' }
+                    { role: 'Ministry', name: 'Counselors' },
+                    { role: 'Support', name: 'Servant Leaders' }
                   ].map(l => `
                     <div class="p-5 bg-stone-50 rounded-2xl border border-stone-100 hover:border-red-200 transition-colors">
                       <p class="text-[8px] font-black uppercase tracking-widest text-[#ff533d] mb-1">${l.role}</p>
@@ -350,19 +349,30 @@ const INITIAL_DATA: Day[] = [
                     <h5 class="text-xl font-black uppercase tracking-tight text-stone-900">Step 7 — Team Identity</h5>
                   </div>
                   <div class="space-y-4">
-                    <p class="text-stone-600 text-sm font-medium">Groups will prepare their team identity, which may include:</p>
-                    <div class="flex flex-wrap gap-2">
-                       <span class="px-3 py-1 bg-white border border-stone-100 rounded-lg text-[9px] font-black uppercase tracking-widest">Team name</span>
-                       <span class="px-3 py-1 bg-white border border-stone-100 rounded-lg text-[9px] font-black uppercase tracking-widest">Team chant</span>
-                       <span class="px-3 py-1 bg-white border border-stone-100 rounded-lg text-[9px] font-black uppercase tracking-widest">Team banner</span>
+                    <p class="text-stone-700 text-sm font-bold">Groups will prepare their team identity, which may include:</p>
+                    <div class="space-y-3">
+                      <div class="p-4 bg-white border border-stone-100 rounded-2xl shadow-sm">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-[#ff533d] mb-1">Team Name</p>
+                        <p class="text-xs font-bold text-stone-600">Relate to Battle (e.g., Bakbakan, Sugod, Laban)</p>
+                      </div>
+                      <div class="p-4 bg-white border border-stone-100 rounded-2xl shadow-sm">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-[#ff533d] mb-1">Team Chant</p>
+                        <p class="text-xs font-bold text-stone-600">A QUICK CHANT (5-10 SEC ONLY)</p>
+                      </div>
                     </div>
-                    <p class="text-xs font-bold text-red-500 uppercase italic">This builds team unity and excitement for the activities ahead.</p>
+                    
+                    <div class="p-5 bg-red-50 rounded-3xl border border-red-100 italic mt-4">
+                      <p class="text-stone-900 font-black uppercase text-[10px] tracking-widest mb-1">To secure the name:</p>
+                      <p class="text-xs font-bold text-stone-700 leading-relaxed">
+                        Look for <span class="text-red-600 font-black">Bro. ER</span> so he could record the final team names after the Orientation.
+                      </p>
+                    </div>
                   </div>
                 </section>
               </div>
 
               <!-- Step 8 - Closing -->
-              <section class="p-8 bg-stone-900 text-white rounded-[3rem] shadow-2xl relative overflow-hidden border border-white/5">
+              <section class="p-8 bg-stone-900 text-white rounded-[3rem] shadow-2xl relative overflow-hidden border border-white/5 mt-6">
                 <div class="flex items-center gap-4 mb-6">
                   <div class="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center font-black text-lg shadow-lg">08</div>
                   <h5 class="text-xl font-black uppercase tracking-tight">Step 8 — Orientation Closing</h5>
@@ -598,6 +608,12 @@ const INITIAL_DATA: Day[] = [
               <p class="text-xl font-bold text-stone-900 leading-snug italic">
                 "This session is important because it builds team unity, energy, and synergy that will carry through the coming competitions and activities."
               </p>
+              <div class="p-6 bg-white rounded-3xl border-2 border-red-200 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full -mr-12 -mt-12"></div>
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff533d] mb-2">Primary Task</p>
+                <h5 class="text-2xl font-black uppercase tracking-tight text-stone-900 italic">Team Banner</h5>
+                <p class="text-sm font-bold text-stone-600 mt-1">A visual representation of the team's identity.</p>
+              </div>
               <p class="text-sm font-black uppercase tracking-widest text-red-600">
                 Commanders are responsible for guiding, organizing, and motivating their teams.
               </p>
