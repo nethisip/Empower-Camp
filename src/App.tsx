@@ -1788,6 +1788,61 @@ export default function App() {
   const [showInfo, setShowInfo] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl'>('xl');
   const [filter, setFilter] = useState<'ALL' | 'LESSON' | 'CIRCLE'>('ALL');
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  const jumpToSchedule = () => {
+    const today = new Date();
+    const currentMonth = today.toLocaleString('default', { month: 'long' });
+    const currentDayNum = today.getDate();
+    const todayString = `${currentMonth} ${currentDayNum}`;
+    
+    const matchingDay = data.find(d => d.date === todayString);
+    if (matchingDay) {
+      setActiveDayId(matchingDay.id);
+    } else {
+      setActiveDayId('day1');
+    }
+    setFilter('ALL');
+    
+    setTimeout(() => {
+      const target = document.getElementById('schedule-section');
+      if (target) {
+        const offset = 100;
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = target.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   // Background Scroll Effect
   const { scrollY } = useScroll();
@@ -1858,15 +1913,42 @@ export default function App() {
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#0a0a0c]/95 border-b border-white/10 shadow-2xl">
         <div className="max-w-7xl mx-auto">
           {/* Header row */}
-          <div className="px-4 h-12 flex items-center justify-between border-b border-white/5 bg-black/20">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-[#ff533d] flex items-center justify-center">
+          <div className="px-4 h-14 flex items-center justify-between border-b border-white/5 bg-black/20 gap-4">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-7 h-7 rounded bg-[#ff533d] flex items-center justify-center shadow-lg shadow-red-500/20">
                 <span className="font-black text-black text-[10px]">⚔</span>
               </div>
-              <h1 className="text-[10px] font-black tracking-widest uppercase truncate text-white/80">Empower Camp</h1>
+              <div className="flex flex-col leading-none">
+                <h1 className="text-[10px] font-black tracking-widest uppercase text-white/80">Empower Camp</h1>
+                <p className="text-[7px] font-bold text-[#ff533d] uppercase tracking-[0.3em]">Battle Cry</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-4">
+            <button 
+              onClick={jumpToSchedule}
+              className="flex-1 max-w-sm flex items-center justify-center gap-2 px-4 py-2 bg-white/5 rounded-2xl border border-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.02)] group hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-300"
+            >
+              <div className="hidden sm:flex items-center gap-2 pr-3 border-r border-white/10">
+                <Calendar className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-black text-stone-400 uppercase tracking-tighter whitespace-nowrap">
+                  {formatDate(currentTime)}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-3 pl-1">
+                <Clock className="w-4 h-4 text-red-500 animate-pulse" />
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl sm:text-2xl font-black text-white uppercase tracking-tighter tabular-nums">
+                    {formatTime(currentTime).split(' ')[0]}
+                  </span>
+                  <span className="text-[10px] font-black text-red-500 uppercase">
+                    {formatTime(currentTime).split(' ')[1]}
+                  </span>
+                </div>
+              </div>
+            </button>
+
+            <div className="flex items-center gap-2 shrink-0">
               <button 
                 onClick={() => setShowInfo(true)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-[#ff533d]/10 border border-[#ff533d]/20 rounded-full text-[#ff533d] hover:bg-[#ff533d] hover:text-white transition-all shadow-lg shadow-[#ff533d]/5 group"
@@ -1984,7 +2066,7 @@ export default function App() {
         </header>
 
         {/* Schedule List */}
-        <section className="space-y-6">
+        <section id="schedule-section" className="space-y-6 scroll-mt-24">
           <div className="pt-4 border-b border-white/5 pb-6">
             <div className="flex flex-col gap-1">
               <h3 className="text-xl sm:text-2xl font-black tracking-tight uppercase flex flex-wrap items-center gap-2 sm:gap-3">
